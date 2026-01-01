@@ -3,991 +3,1279 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dog Treat Tracker</title>
+  <title>Dog Treat Tracker (Shared)</title>
   <style>
     :root{
-      --bg:#0b0b0b; --card:#121212; --line:#2a2a2a; --text:#f2f2f2; --muted:#b7b7b7;
-      --blue:#3ea6ff; --warn:#ffd166; --bad:#ff6b6b; --ok:#7CFC98;
+      --bg:#0b0f16;
+      --card:#121a27;
+      --card2:#0f1622;
+      --text:#e9eefb;
+      --muted:#a8b3cf;
+      --line:rgba(255,255,255,.10);
+      --good:#21c55d;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --accent:#60a5fa;
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --radius:18px;
     }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-    body{margin:0;background:var(--bg);color:var(--text);}
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(96,165,250,.18), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 10%, rgba(34,197,94,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
     header{
-      padding:16px 16px;border-bottom:1px solid var(--line);
-      position:sticky;top:0;background:rgba(11,11,11,.92);backdrop-filter:blur(8px);z-index:10;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding: 16px 16px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
-    header h1{margin:0 0 6px;font-size:18px;}
-    header .sub{color:var(--muted);font-size:13px;line-height:1.35;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-    .pill{font-size:12px;color:var(--muted);}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;}
-    main{padding:16px;max-width:980px;margin:0 auto;display:grid;gap:14px;}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
-    .top{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--line);}
-    .top .left{min-width:0}
-    .top .title{margin:0;font-weight:800;font-size:14px;}
-    .top .desc{margin-top:4px;color:var(--muted);font-size:12px;}
-    .body{padding:12px;display:grid;gap:10px;}
-    .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
-    label{font-size:12px;color:var(--muted);}
-    input[type="number"],input[type="text"],select{
-      width:100%;padding:10px 10px;border-radius:10px;border:1px solid var(--line);
-      background:#0e0e0e;color:var(--text);
+    header h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
     }
-    .small{width:120px;}
+    header .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .pill{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      background: rgba(18,26,39,.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 16px;
+      background: rgba(0,0,0,.20);
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .hd .title{
+      font-weight:700;
+      font-size:13px;
+      letter-spacing:.25px;
+      text-transform:uppercase;
+      color: #dbe6ff;
+    }
+    .card .bd{ padding: 14px 16px; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .row > * { flex: 0 0 auto; }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    input, select{
+      width:100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline: none;
+    }
+    input::placeholder{ color: rgba(233,238,251,.45); }
+    input:focus, select:focus{ border-color: rgba(96,165,250,.55); box-shadow: 0 0 0 3px rgba(96,165,250,.12); }
+
     button{
-      padding:10px 12px;border-radius:10px;border:1px solid var(--line);
-      background:#111;color:var(--text);cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      cursor:pointer;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease;
+      min-height: 44px;
     }
-    button:hover{background:#141414;}
-    button.danger{border-color:rgba(255,107,107,.35);}
-    button.primary{border-color:rgba(62,166,255,.45);}
-    .big{font-size:28px;font-weight:900;}
-    .split{display:grid;gap:12px;grid-template-columns:1.4fr 1fr;}
-    @media(max-width:860px){.split{grid-template-columns:1fr;}}
-    .bar{height:12px;border-radius:999px;background:#1b1b1b;overflow:hidden;border:1px solid var(--line);}
-    .bar>div{height:100%;width:0%;background:var(--blue);transition:width .15s ease, background .15s ease;}
-    .status{font-size:13px;color:var(--muted);}
-    .status.ok{color:var(--ok);}
-    .status.warn{color:var(--warn);}
-    .status.bad{color:var(--bad);}
-    .items{display:grid;gap:10px;}
+    button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+    button:active{ transform: translateY(1px); }
+
+    .btnPrimary{
+      background: rgba(96,165,250,.18);
+      border-color: rgba(96,165,250,.35);
+    }
+    .btnDanger{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.35);
+    }
+    .btnGood{
+      background: rgba(34,197,94,.14);
+      border-color: rgba(34,197,94,.35);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom: 12px;
+    }
+    .kpi{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .kpi .k{ font-size:12px; color: var(--muted); }
+    .kpi .v{
+      margin-top:6px;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .kpi .small{ font-size:12px; color: var(--muted); margin-top:4px; }
+
+    .barOuter{
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .barInner{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(34,197,94,.95), rgba(245,158,11,.95), rgba(239,68,68,.95));
+      transition: width .25s ease;
+    }
+    .warnBox{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.35;
+    }
+    .warnBox strong{ color: var(--text); }
+
+    .divider{ height:1px; background: var(--line); margin: 12px 0; }
+
+    .items{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
     .item{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;
-      border:1px solid var(--line);border-radius:14px;padding:10px;background:#0f0f0f;
+      display:grid;
+      grid-template-columns: 64px 1fr;
+      gap: 12px;
+      align-items:center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
     }
-    .itemLeft{display:flex;gap:12px;align-items:center;min-width:0;flex:1;}
-    .treatThumb{
-      width:60px;height:60px;border-radius:14px;border:1px solid var(--line);
-      background:#1b1b1b;overflow:hidden;flex:0 0 auto;display:grid;place-items:center;
+    .thumb{
+      width:64px; height:64px;
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: rgba(233,238,251,.5);
+      font-size: 11px;
+      text-align:center;
+      padding:6px;
     }
-    .treatThumb img{width:100%;height:100%;object-fit:cover;display:block;}
-    .treatMeta{min-width:0}
-    .treatName{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;}
-    .treatSub{color:var(--muted);font-size:12px;margin-top:4px;}
-    .itemRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
-    .itemRight .small{width:110px;}
-    .tag{
-      font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);
+    .thumb img{
+      width:100%; height:100%;
+      object-fit:cover;
+      display:block;
     }
-    .tag.ok{border-color:rgba(124,252,152,.35);color:var(--ok);}
-    .tag.warn{border-color:rgba(255,209,102,.35);color:var(--warn);}
-    .tag.bad{border-color:rgba(255,107,107,.35);color:var(--bad);}
-    .hint{font-size:12px;color:var(--muted);line-height:1.35;}
-    .two{display:grid;gap:10px;grid-template-columns:1fr 1fr;}
-    @media(max-width:860px){.two{grid-template-columns:1fr;}}
-    .catalogRow{
-      display:grid;gap:8px;grid-template-columns:1.2fr .9fr .7fr .7fr 1.6fr .6fr;
+    .itemMain{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .itemLeft{ min-width: 220px; flex: 1 1 240px; }
+    .itemName{ font-weight:800; }
+    .itemMeta{ margin-top:4px; color: var(--muted); font-size:12px; }
+
+    .itemRight{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex: 0 0 auto;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .miniInput{
+      width: 120px;
+    }
+    .miniInput input{ padding: 10px 10px; }
+
+    .qtyPill{
+      display:flex;
+      gap:6px;
       align-items:center;
     }
-    @media(max-width:980px){
-      .catalogRow{grid-template-columns:1fr 1fr;}
-      .catalogRow button{grid-column:1/-1;}
+    .qtyPill input{
+      width: 88px;
+      text-align:center;
+    }
+    .qtyPill button{
+      width: 44px;
+      padding: 10px 0;
+    }
+
+    .muted{ color:var(--muted); }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .threeCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+
+    .footNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+
+    /* Modal */
+    .modalBack{
+      position: fixed;
+      inset:0;
+      background: rgba(0,0,0,.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 9999;
+    }
+    .modal{
+      width: min(520px, 100%);
+      border-radius: 18px;
+      border:1px solid var(--line);
+      background: rgba(18,26,39,.98);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal .hd{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,.20);
+      font-weight: 800;
+    }
+    .modal .bd{ padding: 14px 16px; }
+    .modal .bd p{ margin: 0 0 12px 0; color: var(--muted); font-size: 13px; line-height:1.35; }
+
+    /* Mobile */
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px){
+      header{ padding: 14px; }
+      header h1{ font-size: 16px; }
+      .kpi .v{ font-size: 24px; }
+      .card .bd{ padding: 12px; }
+      .card .hd{ padding: 12px; }
+      .item{ padding: 10px; gap: 10px; }
+      .thumb{ width: 56px; height:56px; border-radius: 14px; }
+      .miniInput{ width: 140px; }
+      button{ width:100%; }
+      .row button{ width:auto; }
+      .itemRight{ width:100%; justify-content: space-between; }
+      .qtyPill{ width:100%; justify-content: space-between; }
+      .qtyPill input{ width: 110px; }
+      input, select, button { min-height: 44px; }
     }
   </style>
 </head>
 <body>
-<header>
-  <h1>🐶 Dog Treat Tracker</h1>
-  <div class="sub">
-    <span class="tag" id="dayTag">Today</span>
-    <span>Current weight: <span class="mono" id="hdrWeight">114.0</span> lb • Goal: <span class="mono" id="hdrGoalWeight">100.0</span> lb</span>
-    <span class="tag" id="overTag">Goal: <span class="mono" id="hdrGoalKcal">1800</span> kcal</span>
-    <span class="tag" id="syncTag">Sync: starting…</span>
-  </div>
-</header>
-
-<main>
-  <!-- STATUS -->
-  <section class="card">
-    <div class="body split">
+  <div class="wrap">
+    <header>
       <div>
-        <div class="pill">Daily total calories</div>
-        <div class="big" id="dailyTotal">0</div>
-        <div class="status" id="statusText">—</div>
-
-        <div style="margin-top:10px;">
-          <div class="pill">Progress to daily goal (<span class="mono" id="goalText">1800</span> kcal)</div>
-          <div class="bar" title="Total / Goal"><div id="barFill"></div></div>
-          <div class="hint" id="barHint" style="margin-top:6px;">Add treats/food below to fill the bar.</div>
+        <h1>🐶 Dog Treat Tracker (Shared)</h1>
+        <div class="sub">
+          Golden Retriever • Current weight: <strong id="wNowLabel">114</strong> lb • Goal: <strong id="wGoalLabel">100</strong> lb<br/>
+          Resets daily (auto). Shared across devices via Firebase Realtime Database.
         </div>
+      </div>
+      <div class="pill" id="statusPill">Offline</div>
+    </header>
 
-        <div class="row" style="margin-top:10px;">
-          <div>
-            <div class="pill">Food calories</div>
-            <div class="mono" id="foodTotal">0</div>
-          </div>
-          <div>
-            <div class="pill">Treat calories</div>
-            <div class="mono" id="treatTotal">0</div>
-          </div>
-          <div>
-            <div class="pill">Custom calories</div>
-            <div class="mono" id="customTotal">0</div>
+    <div class="grid">
+      <!-- LEFT: Add + Log -->
+      <div class="card">
+        <div class="hd">
+          <div class="title">Add treats</div>
+          <div class="row">
+            <button class="btnDanger" id="btnNewDay">New day (manual)</button>
           </div>
         </div>
+        <div class="bd">
+          <div class="twoCol">
+            <div>
+              <label>Pick a treat</label>
+              <select id="treatSelect"></select>
+            </div>
+            <div>
+              <label>Quantity</label>
+              <div class="qtyPill">
+                <button id="qtyMinus">−</button>
+                <input id="qtyInput" type="number" step="1" min="0" value="1" />
+                <button id="qtyPlus">+</button>
+              </div>
+              <div class="footNote" id="qtyHint"></div>
+            </div>
+          </div>
 
-        <div class="row" style="margin-top:8px;">
-          <button class="primary" id="copyBtn" type="button">Copy summary</button>
-          <button class="danger" id="newDayBtn" type="button">New day (clear items)</button>
-        </div>
-        <div class="hint">
-          Shared sync is via Firebase Realtime Database (no room codes).
-          Everyone is editing the same shared data path.
+          <div class="row" style="margin-top:10px;">
+            <button class="btnPrimary" id="btnAdd">Add to today</button>
+            <button id="btnClearToday" class="btnDanger">Clear today</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="card" style="box-shadow:none; background:transparent; border:none;">
+            <div class="hd" style="border:1px solid var(--line); border-radius:14px; margin-bottom:10px;">
+              <div class="title">Custom entry</div>
+              <div class="muted" style="font-size:12px;">(one-off treat / meds / snack)</div>
+            </div>
+            <div class="bd" style="padding:0;">
+              <div class="threeCol">
+                <div>
+                  <label>Name</label>
+                  <input id="customName" placeholder="e.g., Allergy meds" />
+                </div>
+                <div>
+                  <label>Calories per unit</label>
+                  <input id="customKcal" type="number" step="1" min="0" placeholder="e.g., 80" />
+                </div>
+                <div>
+                  <label>Image URL (optional)</label>
+                  <input id="customImg" placeholder="https://..." />
+                </div>
+              </div>
+              <div class="row" style="margin-top:10px;">
+                <button class="btnGood" id="btnAddCustom">Add custom to today</button>
+              </div>
+              <div class="footNote">
+                Tip: You can also edit calories for presets in the “Catalog” panel on the right.
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="hd" style="padding:0; background:transparent; border:none; margin-bottom:10px;">
+            <div class="title">Today’s log</div>
+            <div class="muted" id="dayLabel" style="font-size:12px;"></div>
+          </div>
+          <div class="items" id="items"></div>
+          <div class="footNote">
+            Note: Calories for some presets are placeholders unless you set them. You can edit them in the Catalog panel.
+          </div>
         </div>
       </div>
 
-      <!-- SETTINGS -->
-      <div class="card" style="margin:0;">
-        <div class="top">
-          <div class="left">
-            <div class="title">Settings</div>
-            <div class="desc">Edit anytime — everything updates instantly.</div>
-          </div>
-          <button id="resetAllBtn" type="button">Reset all</button>
+      <!-- RIGHT: Totals + Settings + Catalog -->
+      <div class="card">
+        <div class="hd">
+          <div class="title">Totals</div>
+          <div class="pill" id="syncPill">Sync: —</div>
         </div>
-        <div class="body">
-          <div class="two">
+        <div class="bd">
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Calories today</div>
+              <div class="v" id="kcalToday">0</div>
+              <div class="small" id="kcalBreakdown">—</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Daily goal</div>
+              <div class="v" id="kcalGoal">1800</div>
+              <div class="small">Progress below</div>
+            </div>
+          </div>
+
+          <div class="barOuter" aria-label="progress">
+            <div class="barInner" id="bar"></div>
+          </div>
+
+          <div class="warnBox" id="warnBox">
+            <strong>Status:</strong> waiting for data…
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="hd" style="padding:0; background:transparent; border:none; margin-bottom:10px;">
+            <div class="title">Food settings</div>
+          </div>
+
+          <div class="twoCol">
             <div>
-              <label>Current weight (lb)</label>
-              <input id="currentWeight" type="number" step="0.1" min="0" />
+              <label>Dog weight (lb)</label>
+              <input id="weightNow" type="number" step="0.1" min="1" value="114" />
             </div>
             <div>
               <label>Goal weight (lb)</label>
-              <input id="goalWeight" type="number" step="0.1" min="0" />
+              <input id="weightGoal" type="number" step="0.1" min="1" value="100" />
             </div>
           </div>
 
-          <div class="two">
+          <div class="twoCol" style="margin-top:10px;">
             <div>
-              <label>Daily calorie goal (kcal)</label>
-              <input id="goalKcal" type="number" step="10" min="0" />
+              <label>Daily calorie goal</label>
+              <input id="goalKcal" type="number" step="1" min="0" value="1800" />
             </div>
             <div>
-              <label>Treat budget (kcal) (auto = 10% goal)</label>
-              <input id="treatBudget" type="number" step="10" min="0" />
-            </div>
-          </div>
-
-          <div class="two">
-            <div>
-              <label>Food cups/day</label>
-              <input id="cups" type="number" step="0.25" min="0" />
-            </div>
-            <div>
-              <label>Food kcal per cup</label>
-              <input id="kcalPerCup" type="number" step="1" min="0" />
+              <label>Timezone (daily reset)</label>
+              <input id="timezone" placeholder="America/New_York" value="America/New_York" />
             </div>
           </div>
 
-          <div class="hint">Defaults: 114 lb, goal 100 lb, 1800 kcal goal, 4 cups, 384 kcal/cup.</div>
-        </div>
-      </div>
-    </div>
-  </section>
+          <div class="twoCol" style="margin-top:10px;">
+            <div>
+              <label>Dog food cups today</label>
+              <input id="cups" type="number" step="0.25" min="0" value="4" />
+            </div>
+            <div>
+              <label>Calories per cup</label>
+              <input id="kcalPerCup" type="number" step="1" min="0" value="384" />
+            </div>
+          </div>
 
-  <!-- ADD TREAT -->
-  <section class="card">
-    <div class="top">
-      <div class="left">
-        <div class="title">Add a treat</div>
-        <div class="desc">Pick from your catalog. Images come from URLs.</div>
-      </div>
-      <span class="pill">Dropdown + quantity</span>
-    </div>
-    <div class="body">
-      <div class="two">
-        <div>
-          <label>Select treat</label>
-          <select id="treatSelect"></select>
-        </div>
-        <div>
-          <label>Quantity</label>
-          <input id="treatQty" type="number" step="1" min="0" value="1" />
-          <div class="hint" id="qtyHint" style="margin-top:6px;">Step adjusts automatically (1 or 0.5).</div>
-        </div>
-      </div>
-      <div class="row">
-        <button class="primary" id="addTreatBtn" type="button">Add to today</button>
-        <div class="pill">Tip: bull sticks & dental sticks use 0.5 steps.</div>
-      </div>
-    </div>
-  </section>
+          <div class="row" style="margin-top:10px;">
+            <button class="btnPrimary" id="btnSaveSettings">Save settings</button>
+          </div>
 
-  <!-- TODAY LIST -->
-  <section class="card">
-    <div class="top">
-      <div class="left">
-        <div class="title">Today’s items</div>
-        <div class="desc">Edit quantities inline. Images are cropped nicely (no stretching).</div>
-      </div>
-      <span class="pill" id="itemsCount">0 items</span>
-    </div>
-    <div class="body">
-      <div class="items" id="items"></div>
-      <div class="hint" id="emptyHint">No treats yet. Add one with the dropdown above.</div>
-    </div>
-  </section>
+          <div class="divider"></div>
 
-  <!-- CUSTOM ENTRY -->
-  <section class="card">
-    <div class="top">
-      <div class="left">
-        <div class="title">Custom entry</div>
-        <div class="desc">Anything not in the catalog (human food, new treat, etc.).</div>
-      </div>
-      <span class="pill">Quick add</span>
-    </div>
-    <div class="body">
-      <div class="two">
-        <div>
-          <label>Name</label>
-          <input id="customName" type="text" placeholder="Cheese / hot dog / etc." />
-        </div>
-        <div>
-          <label>Image URL (optional)</label>
-          <input id="customImg" type="text" placeholder="https://...jpg" />
+          <div class="hd" style="padding:0; background:transparent; border:none; margin-bottom:10px;">
+            <div class="title">Catalog (edit presets)</div>
+          </div>
+
+          <div class="items" id="catalog"></div>
         </div>
       </div>
-      <div class="two">
-        <div>
-          <label>Calories per unit</label>
-          <input id="customKcal" type="number" min="0" step="1" placeholder="70" />
+    </div>
+  </div>
+
+  <!-- Passcode modal -->
+  <div class="modalBack" id="passModal">
+    <div class="modal">
+      <div class="hd">Enter passcode</div>
+      <div class="bd">
+        <p>This is just a simple family lock (client-side). Passcode: <strong>0436</strong></p>
+        <label>Passcode</label>
+        <input id="passInput" inputmode="numeric" pattern="[0-9]*" placeholder="0436" />
+        <div class="row" style="margin-top:12px;">
+          <button class="btnPrimary" id="passBtn">Unlock</button>
         </div>
-        <div>
-          <label>Quantity</label>
-          <input id="customQty" type="number" min="0" step="1" value="1" />
-        </div>
-      </div>
-      <div class="row">
-        <button class="primary" id="addCustomBtn" type="button">Add custom</button>
-        <div class="hint">Custom items count toward treat calories.</div>
+        <div class="footNote" id="passErr" style="color: rgba(239,68,68,.9); display:none;">Wrong code.</div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- CATALOG EDITOR -->
-  <section class="card">
-    <div class="top">
-      <div class="left">
-        <div class="title">Treat catalog</div>
-        <div class="desc">Edit names/calories/images here (no code changes later).</div>
-      </div>
-      <button class="primary" id="addCatalogBtn" type="button">+ Add catalog treat</button>
-    </div>
-    <div class="body">
-      <div class="hint">
-        Image URLs should be direct images (<span class="mono">.jpg .png .webp</span>). If a link fails, you’ll get a placeholder.
-      </div>
-      <div id="catalog"></div>
-    </div>
-  </section>
-</main>
-
-<!-- Firebase (Compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-
-<script>
-/* =========================
-   FIREBASE CONFIG (PASTE YOURS HERE)
-   Firebase Console -> Project settings -> Your apps -> Web app
-========================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBISAQF9xw2ifb9HllNj4LniyMLD6OhclU",
+  <script type="module">
+    /******************************************************************
+     * 1) FIREBASE SETUP (paste your config here)
+     *    - Firebase Console → Project settings → Your apps → Web app
+     *    - Copy firebaseConfig object
+     ******************************************************************/
+    const firebaseConfig = {
+apiKey: "AIzaSyBISAQF9xw2ifb9HllNj4LniyMLD6OhclU",
   authDomain: "dog-calorie-counter.firebaseapp.com",
   databaseURL: "https://dog-calorie-counter-default-rtdb.firebaseio.com",
   projectId: "dog-calorie-counter",
   storageBucket: "dog-calorie-counter.firebasestorage.app",
   messagingSenderId: "835874316228",
   appId: "1:835874316228:web:cbebd7e0ad3b071352ce91"
-};
-
-// No room keys: everyone shares ONE path
-const CLOUD_PATH = "shared"; // data stored at /shared
-
-/* =========================
-   DEFAULT CATALOG
-   Allergy meds = calories of a slice of American cheese (default 70; editable)
-========================= */
-const DEFAULT_CATALOG = [
-  { id: crypto.randomUUID(), name:"Member’s Mark Sweet Potato Fries", kcalPerUnit:25, unitLabel:"pieces", step:1, imageUrl:"" },
-  { id: crypto.randomUUID(), name:'Cadet 12" Bull Sticks', kcalPerUnit:90, unitLabel:"sticks", step:0.5, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Purina Beggin’ Bacon & Cheese", kcalPerUnit:30, unitLabel:"treats", step:1, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Pet Pride Chicken Jerky", kcalPerUnit:20, unitLabel:"strips", step:1, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Milk-Bone Minis (Peanut Butter)", kcalPerUnit:5, unitLabel:"minis", step:1, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Pet Pride Large Dental Sticks", kcalPerUnit:70, unitLabel:"sticks", step:0.5, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Jerky Treats (bag)", kcalPerUnit:25, unitLabel:"pieces", step:1, imageUrl:"" },
-  { id: crypto.randomUUID(), name:"Allergy meds (cheese slice calories)", kcalPerUnit:70, unitLabel:"dose", step:1, imageUrl:"" }
-];
-
-/* =========================
-   STATE
-========================= */
-const state = {
-  settings: {
-    currentWeight: 114.0,
-    goalWeight: 100.0,
-    goalKcal: 1800,
-    treatBudget: null,   // null => auto 10%
-    cups: 4,
-    kcalPerCup: 384
-  },
-  catalog: [],
-  items: [], // {id, type:"catalog"|"custom", catalogId?, name, kcalPerUnit, unitLabel, step, imageUrl, qty}
-  dayKey: null
-};
-
-/* =========================
-   DOM
-========================= */
-const elDayTag = document.getElementById("dayTag");
-const elHdrWeight = document.getElementById("hdrWeight");
-const elHdrGoalWeight = document.getElementById("hdrGoalWeight");
-const elHdrGoalKcal = document.getElementById("hdrGoalKcal");
-const elSyncTag = document.getElementById("syncTag");
-
-const elDailyTotal = document.getElementById("dailyTotal");
-const elFoodTotal = document.getElementById("foodTotal");
-const elTreatTotal = document.getElementById("treatTotal");
-const elCustomTotal = document.getElementById("customTotal");
-const elStatusText = document.getElementById("statusText");
-const elGoalText = document.getElementById("goalText");
-const elBarFill = document.getElementById("barFill");
-const elBarHint = document.getElementById("barHint");
-const elOverTag = document.getElementById("overTag");
-
-const elCurrentWeight = document.getElementById("currentWeight");
-const elGoalWeight = document.getElementById("goalWeight");
-const elGoalKcal = document.getElementById("goalKcal");
-const elTreatBudget = document.getElementById("treatBudget");
-const elCups = document.getElementById("cups");
-const elKcalPerCup = document.getElementById("kcalPerCup");
-
-const elTreatSelect = document.getElementById("treatSelect");
-const elTreatQty = document.getElementById("treatQty");
-const elQtyHint = document.getElementById("qtyHint");
-
-const elItems = document.getElementById("items");
-const elItemsCount = document.getElementById("itemsCount");
-const elEmptyHint = document.getElementById("emptyHint");
-
-const elCustomName = document.getElementById("customName");
-const elCustomImg = document.getElementById("customImg");
-const elCustomKcal = document.getElementById("customKcal");
-const elCustomQty = document.getElementById("customQty");
-
-const elCatalog = document.getElementById("catalog");
-
-/* =========================
-   HELPERS
-========================= */
-function clampNum(n){ n = Number(n); return Number.isFinite(n) ? n : 0; }
-function round1(n){ return Math.round(n * 10) / 10; }
-function todayKey(){
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth()+1).padStart(2,"0");
-  const dd = String(d.getDate()).padStart(2,"0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
-function safeImg(url){ return (url||"").trim(); }
-function setSync(text, cls="tag"){
-  elSyncTag.className = cls;
-  elSyncTag.textContent = text;
-}
-function debounce(fn, ms=650){
-  let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
-}
-
-/* =========================
-   FIREBASE SYNC (no room keys)
-========================= */
-let db, cloudRef;
-let suppressCloudSave = false;
-let lastCloudTs = 0;
-
-function applyIncomingData(data){
-  if(!data || typeof data !== "object") return;
-
-  state.settings = { ...state.settings, ...(data.settings || {}) };
-  state.catalog = Array.isArray(data.catalog) ? data.catalog : state.catalog;
-  state.items = Array.isArray(data.items) ? data.items : [];
-  state.dayKey = data.dayKey || state.dayKey;
-
-  // Ensure we always have at least a catalog
-  if(!state.catalog || state.catalog.length === 0){
-    state.catalog = deepCopy(DEFAULT_CATALOG);
-  }
-
-  // Re-render
-  syncHeader();
-  syncSettingsInputs();
-  renderTreatDropdown();
-  updateQtyStepFromSelection();
-  renderCatalog();
-  renderItems();
-  recalcAndUpdate();
-}
-
-const cloudSaveNow = async () => {
-  if(suppressCloudSave || !cloudRef) return;
-  try{
-    setSync("Sync: saving…", "tag warn");
-    const payload = {
-      ...state,
-      ts: Date.now()
     };
-    await cloudRef.set(payload);
-    setSync("Sync: saved ✓", "tag ok");
-  }catch(e){
-    console.warn("Cloud save failed:", e);
-    setSync("Sync: error", "tag bad");
-  }
-};
-const cloudSave = debounce(cloudSaveNow, 650);
 
-function startCloudSync(){
-  cloudRef.on("value", async (snap) => {
-    const data = snap.val();
-    if(!data){
-      // First ever: seed defaults
-      setSync("Sync: seeding…", "tag warn");
-      suppressCloudSave = false;
-      await cloudSaveNow();
-      return;
+    /******************************************************************
+     * 2) Simple passcode gate (you asked for one passcode: 0436)
+     *    NOTE: This is client-side only. You said you don't care.
+     ******************************************************************/
+    const PASSCODE = "0436";
+    const PASS_LS_KEY = "dogTrackerUnlocked";
+
+    /******************************************************************
+     * 3) App state + defaults
+     ******************************************************************/
+    const defaultCatalog = [
+      {
+        id: "proplan_kibble",
+        name: "Purina Pro Plan (kibble)",
+        unit: "cup",
+        kcalPerUnit: 384,           // EDIT if your bag says different
+        step: 0.25,
+        imageUrl: ""                // optional
+      },
+      {
+        id: "milkbone_minis",
+        name: "Milk-Bone mini’s (peanut butter)",
+        unit: "treat",
+        kcalPerUnit: 5,             // placeholder
+        step: 1,
+        imageUrl: ""                // optional
+      },
+      {
+        id: "bull_stick",
+        name: "Cadet Bull Stick (9-12\")",
+        unit: "stick",
+        kcalPerUnit: 120,           // placeholder
+        step: 0.5,                  // halves allowed
+        imageUrl: ""                // optional
+      },
+      {
+        id: "dental_stick",
+        name: "Pet Pride Large Dental Stick",
+        unit: "stick",
+        kcalPerUnit: 90,            // placeholder
+        step: 0.5,                  // halves allowed
+        imageUrl: ""                // optional
+      },
+      {
+        id: "sweet_potato_fries",
+        name: "Member’s Mark Sweet Potato Fries",
+        unit: "piece",
+        kcalPerUnit: 8,             // placeholder
+        step: 1,
+        imageUrl: ""
+      },
+      {
+        id: "beggin_bacon_cheese",
+        name: "Purina Beggin’ (bacon & cheese)",
+        unit: "piece",
+        kcalPerUnit: 35,            // placeholder
+        step: 1,
+        imageUrl: ""
+      },
+      {
+        id: "pet_pride_chicken_jerky",
+        name: "Pet Pride Chicken Jerky",
+        unit: "piece",
+        kcalPerUnit: 25,            // placeholder
+        step: 1,
+        imageUrl: ""
+      },
+      {
+        id: "jerky_treats",
+        name: "Jerky Treats (dog snacks)",
+        unit: "strip",
+        kcalPerUnit: 30,            // placeholder
+        step: 1,
+        imageUrl: ""
+      },
+      {
+        id: "allergy_meds",
+        name: "Allergy meds (≈ 1 slice American cheese)",
+        unit: "dose",
+        kcalPerUnit: 80,            // you asked for this
+        step: 1,
+        imageUrl: ""
+      }
+    ];
+
+    const state = {
+      dayKey: null,
+      settings: {
+        currentWeight: 114.0,
+        goalWeight: 100.0,
+        goalKcal: 1800,
+        cups: 4,
+        kcalPerCup: 384,
+        timezone: "America/New_York"
+      },
+      catalog: defaultCatalog,
+      items: [] // today's log entries
+    };
+
+    /******************************************************************
+     * 4) Firebase imports
+     ******************************************************************/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getDatabase, ref, onValue, set, update, serverTimestamp, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    let app, db;
+    let suppressCloudSave = false;
+    const DB_PATH = "sharedState"; // single shared schedule for family
+
+    /******************************************************************
+     * Helpers
+     ******************************************************************/
+    const $ = (id) => document.getElementById(id);
+    const money = (n) => (Number.isFinite(n) ? n : 0);
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function uid(){ return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16); }
+
+    function todayKey(){
+      const tz = state?.settings?.timezone || "America/New_York";
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+
+      const y = parts.find(p => p.type === "year")?.value;
+      const m = parts.find(p => p.type === "month")?.value;
+      const d = parts.find(p => p.type === "day")?.value;
+      return `${y}-${m}-${d}`;
     }
 
-    const ts = clampNum(data.ts);
-    if(ts && ts <= lastCloudTs) return;
-    lastCloudTs = ts || Date.now();
+    function safeNum(v, fallback=0){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
 
-    try{
+    function getCatalogItem(id){
+      return state.catalog.find(x => x.id === id);
+    }
+
+    function formatQty(q){
+      // avoid weird .5000001
+      const n = Math.round(q*100)/100;
+      return (Number.isInteger(n) ? String(n) : String(n));
+    }
+
+    /******************************************************************
+     * Daily reset (auto)
+     ******************************************************************/
+    function ensureCorrectDayAndMaybeReset(fromCloud=false){
+      const nowKey = todayKey();
+      if (!state.dayKey) state.dayKey = nowKey;
+
+      if (state.dayKey !== nowKey) {
+        state.dayKey = nowKey;
+        state.items = [];
+        renderAll();
+
+        // Save reset to cloud so ALL devices reset too.
+        if (!fromCloud) cloudSaveNow();
+      }
+    }
+
+    function scheduleDayFlipWatcher(){
+      setInterval(() => {
+        const nowKey = todayKey();
+        if (state.dayKey && state.dayKey !== nowKey) {
+          state.dayKey = nowKey;
+          state.items = [];
+          renderAll();
+          cloudSaveNow();
+        }
+      }, 60_000); // check every 60s
+    }
+
+    /******************************************************************
+     * Firebase sync
+     ******************************************************************/
+    function cloudSaveNow(){
+      if (!db) return;
+      const payload = {
+        dayKey: state.dayKey,
+        settings: state.settings,
+        catalog: state.catalog,
+        items: state.items,
+        updatedAt: serverTimestamp()
+      };
+      set(ref(db, DB_PATH), payload);
+      $("syncPill").textContent = "Sync: saving…";
+      setTimeout(() => $("syncPill").textContent = "Sync: saved", 500);
+    }
+
+    function applyIncomingData(data){
+      if (!data) {
+        // first run: seed
+        state.dayKey = todayKey();
+        cloudSaveNow();
+        return;
+      }
+
       suppressCloudSave = true;
-      setSync("Sync: loading…", "tag warn");
-      applyIncomingData(data);
-      setSync("Sync: live ✓", "tag ok");
-    }finally{
+
+      state.dayKey = data.dayKey || todayKey();
+      state.settings = { ...state.settings, ...(data.settings || {}) };
+      state.catalog = Array.isArray(data.catalog) && data.catalog.length ? data.catalog : defaultCatalog;
+      state.items = Array.isArray(data.items) ? data.items : [];
+
+      // AUTO-RESET DAILY (shared)
+      const nowKey = todayKey();
+      const savedKey = data.dayKey || nowKey;
+      if (savedKey !== nowKey) {
+        state.items = [];
+        state.dayKey = nowKey;
+
+        // push reset to DB so all devices follow
+        setTimeout(() => {
+          suppressCloudSave = false;
+          cloudSaveNow();
+          suppressCloudSave = true;
+        }, 50);
+      }
+
       suppressCloudSave = false;
-    }
-  });
-}
-
-/* =========================
-   UI RENDER: HEADER + SETTINGS
-========================= */
-function syncHeader(){
-  elHdrWeight.textContent = round1(state.settings.currentWeight).toFixed(1);
-  elHdrGoalWeight.textContent = round1(state.settings.goalWeight).toFixed(1);
-  elHdrGoalKcal.textContent = Math.round(state.settings.goalKcal);
-}
-function syncSettingsInputs(){
-  elCurrentWeight.value = state.settings.currentWeight;
-  elGoalWeight.value = state.settings.goalWeight;
-  elGoalKcal.value = state.settings.goalKcal;
-  elTreatBudget.value = state.settings.treatBudget == null ? "" : state.settings.treatBudget;
-  elCups.value = state.settings.cups;
-  elKcalPerCup.value = state.settings.kcalPerCup;
-}
-
-/* =========================
-   CATALOG + DROPDOWN
-========================= */
-function renderTreatDropdown(){
-  elTreatSelect.innerHTML = "";
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "Select a treat…";
-  elTreatSelect.appendChild(opt0);
-
-  state.catalog.forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.textContent = `${t.name} • ${t.kcalPerUnit} kcal/${t.unitLabel}`;
-    elTreatSelect.appendChild(opt);
-  });
-}
-function updateQtyStepFromSelection(){
-  const id = elTreatSelect.value;
-  const t = state.catalog.find(x => x.id === id);
-  const step = t ? clampNum(t.step || 1) : 1;
-  elTreatQty.step = String(step);
-  elQtyHint.textContent = t ? `Step is ${step} for this treat.` : "Step adjusts automatically (1 or 0.5).";
-}
-
-/* =========================
-   ITEMS
-========================= */
-function itemCalories(it){ return clampNum(it.qty) * clampNum(it.kcalPerUnit); }
-
-function renderItems(){
-  elItems.innerHTML = "";
-  elItemsCount.textContent = `${state.items.length} item${state.items.length===1?"":"s"}`;
-  elEmptyHint.style.display = state.items.length ? "none" : "block";
-
-  state.items.forEach((it, idx) => {
-    const row = document.createElement("div");
-    row.className = "item";
-
-    const left = document.createElement("div");
-    left.className = "itemLeft";
-
-    const thumb = document.createElement("div");
-    thumb.className = "treatThumb";
-    const url = safeImg(it.imageUrl);
-
-    if(url){
-      const img = document.createElement("img");
-      img.src = url;
-      img.alt = it.name;
-      img.loading = "lazy";
-      img.referrerPolicy = "no-referrer";
-      img.onerror = () => { thumb.innerHTML = "🦴"; };
-      thumb.appendChild(img);
-    } else {
-      thumb.textContent = "🦴";
+      renderAll();
     }
 
-    const meta = document.createElement("div");
-    meta.className = "treatMeta";
-    meta.innerHTML = `
-      <p class="treatName" title="${(it.name||"").replaceAll('"',"&quot;")}">${it.name}</p>
-      <div class="treatSub">${it.kcalPerUnit} kcal / ${it.unitLabel} • step ${it.step}</div>
-    `;
+    function startCloudSync(){
+      const rootRef = ref(db, DB_PATH);
+      onValue(rootRef, (snap) => {
+        $("statusPill").textContent = "Online";
+        $("statusPill").style.color = "var(--muted)";
+        applyIncomingData(snap.val());
+      }, (err) => {
+        $("statusPill").textContent = "Offline";
+        $("statusPill").style.color = "rgba(239,68,68,.9)";
+        console.error(err);
+      });
+    }
 
-    left.appendChild(thumb);
-    left.appendChild(meta);
+    /******************************************************************
+     * UI rendering
+     ******************************************************************/
+    function renderTreatSelect(){
+      const sel = $("treatSelect");
+      sel.innerHTML = "";
+      state.catalog.forEach((t) => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = `${t.name} • ${safeNum(t.kcalPerUnit,0)} kcal/${t.unit}`;
+        sel.appendChild(opt);
+      });
+      // default selection
+      if (!sel.value && state.catalog[0]) sel.value = state.catalog[0].id;
+      syncQtyStepHint();
+    }
 
-    const right = document.createElement("div");
-    right.className = "itemRight";
+    function syncQtyStepHint(){
+      const selId = $("treatSelect").value;
+      const t = getCatalogItem(selId);
+      const step = safeNum(t?.step, 1) || 1;
+      $("qtyInput").step = String(step);
+      $("qtyHint").textContent = (step === 0.5)
+        ? "This treat allows halves (0.5 increments)."
+        : (step === 0.25 ? "0.25 increments allowed." : "Whole numbers.");
+    }
 
-    const qty = document.createElement("input");
-    qty.type = "number";
-    qty.className = "small";
-    qty.min = "0";
-    qty.step = String(it.step || 1);
-    qty.value = it.qty;
-    qty.addEventListener("input", () => {
-      it.qty = clampNum(qty.value);
-      renderTotalsOnly();
-      cloudSave();
-      cals.textContent = `${Math.round(itemCalories(it))} kcal`;
-    });
+    function calcTotals(){
+      const cups = safeNum(state.settings.cups, 0);
+      const kcalPerCup = safeNum(state.settings.kcalPerCup, 0);
+      const kibbleKcal = cups * kcalPerCup;
 
-    const cals = document.createElement("span");
-    cals.className = "mono";
-    cals.textContent = `${Math.round(itemCalories(it))} kcal`;
+      const treatsKcal = state.items.reduce((sum, it) => {
+        const q = safeNum(it.qty, 0);
+        const k = safeNum(it.kcalPerUnit, 0);
+        return sum + (q * k);
+      }, 0);
 
-    const del = document.createElement("button");
-    del.className = "danger";
-    del.textContent = "Remove";
-    del.addEventListener("click", () => {
-      state.items.splice(idx, 1);
-      renderItems();
-      renderTotalsOnly();
-      cloudSave();
-    });
+      const total = kibbleKcal + treatsKcal;
+      return { kibbleKcal, treatsKcal, total };
+    }
 
-    right.appendChild(qty);
-    right.appendChild(cals);
-    right.appendChild(del);
+    function renderTotals(){
+      const { kibbleKcal, treatsKcal, total } = calcTotals();
+      const goal = safeNum(state.settings.goalKcal, 0);
 
-    row.appendChild(left);
-    row.appendChild(right);
-    elItems.appendChild(row);
-  });
-}
+      $("kcalToday").textContent = Math.round(total).toString();
+      $("kcalGoal").textContent = Math.round(goal).toString();
+      $("kcalBreakdown").textContent = `Food: ${Math.round(kibbleKcal)} • Treats: ${Math.round(treatsKcal)}`;
 
-/* =========================
-   CATALOG EDITOR
-========================= */
-function renderCatalog(){
-  elCatalog.innerHTML = "";
+      const pct = goal > 0 ? clamp((total / goal) * 100, 0, 200) : 0;
+      $("bar").style.width = `${pct}%`;
 
-  state.catalog.forEach((t, idx) => {
-    const wrap = document.createElement("div");
-    wrap.style.border = "1px solid var(--line)";
-    wrap.style.borderRadius = "14px";
-    wrap.style.padding = "10px";
-    wrap.style.background = "#0f0f0f";
-    wrap.style.marginTop = "10px";
+      const wNow = safeNum(state.settings.currentWeight, 114);
+      const wGoal = safeNum(state.settings.goalWeight, 100);
+      $("wNowLabel").textContent = `${wNow}`;
+      $("wGoalLabel").textContent = `${wGoal}`;
 
-    const row = document.createElement("div");
-    row.className = "catalogRow";
+      const remaining = goal - total;
 
-    const name = document.createElement("input");
-    name.type = "text";
-    name.value = t.name;
-    name.placeholder = "Treat name";
+      let status;
+      if (goal <= 0) {
+        status = `Set a daily calorie goal to use the progress bar.`;
+      } else if (total <= goal * 0.8) {
+        status = `✅ On track. About ${Math.round(Math.max(0, remaining))} kcal left today.`;
+      } else if (total <= goal) {
+        status = `⚠️ Getting close. About ${Math.round(Math.max(0, remaining))} kcal left today.`;
+      } else {
+        status = `🚨 Over goal by ${Math.round(Math.abs(remaining))} kcal. Consider skipping extra treats today.`;
+      }
 
-    const kcal = document.createElement("input");
-    kcal.type = "number";
-    kcal.min = "0";
-    kcal.step = "1";
-    kcal.value = t.kcalPerUnit;
+      $("warnBox").innerHTML = `<strong>Status:</strong> ${status}<br/><span class="muted">Weight: ${wNow} lb (goal ${wGoal} lb) • Day resets in timezone: ${state.settings.timezone}</span>`;
+      $("dayLabel").textContent = `Day: ${state.dayKey || todayKey()}`;
+    }
 
-    const unit = document.createElement("input");
-    unit.type = "text";
-    unit.value = t.unitLabel || "unit";
-    unit.placeholder = "unit label";
+    function renderItems(){
+      const box = $("items");
+      box.innerHTML = "";
 
-    const step = document.createElement("input");
-    step.type = "number";
-    step.min = "0.5";
-    step.step = "0.5";
-    step.value = t.step || 1;
+      if (!state.items.length) {
+        const div = document.createElement("div");
+        div.className = "warnBox";
+        div.innerHTML = `<strong>Nothing logged yet.</strong> Add treats on the left.`;
+        box.appendChild(div);
+        return;
+      }
 
-    const img = document.createElement("input");
-    img.type = "text";
-    img.value = t.imageUrl || "";
-    img.placeholder = "Image URL (direct .jpg/.png/.webp)";
+      state.items
+        .slice()
+        .sort((a,b) => (b.ts||0) - (a.ts||0))
+        .forEach((it) => {
+          const wrap = document.createElement("div");
+          wrap.className = "item";
 
-    const del = document.createElement("button");
-    del.className = "danger";
-    del.textContent = "Delete";
-    del.addEventListener("click", () => {
-      state.items = state.items.filter(it => it.catalogId !== t.id);
-      state.catalog.splice(idx, 1);
-      renderTreatDropdown();
+          const thumb = document.createElement("div");
+          thumb.className = "thumb";
+          if (it.imageUrl) {
+            const img = document.createElement("img");
+            img.src = it.imageUrl;
+            img.alt = it.name;
+            img.loading = "lazy";
+            img.onerror = () => { thumb.textContent = "Image\nfailed"; };
+            thumb.appendChild(img);
+          } else {
+            thumb.textContent = "No\nimage";
+          }
+
+          const main = document.createElement("div");
+          main.className = "itemMain";
+
+          const left = document.createElement("div");
+          left.className = "itemLeft";
+          left.innerHTML = `
+            <div class="itemName">${escapeHtml(it.name)}</div>
+            <div class="itemMeta">${formatQty(it.qty)} ${escapeHtml(it.unit)} • ${Math.round(it.qty * it.kcalPerUnit)} kcal</div>
+          `;
+
+          const right = document.createElement("div");
+          right.className = "itemRight";
+
+          const kcalEdit = document.createElement("div");
+          kcalEdit.className = "miniInput";
+          kcalEdit.innerHTML = `
+            <label style="margin:0 0 6px 0;">kcal/${escapeHtml(it.unit)}</label>
+            <input type="number" step="1" min="0" value="${safeNum(it.kcalPerUnit,0)}" />
+          `;
+          kcalEdit.querySelector("input").addEventListener("change", (e) => {
+            it.kcalPerUnit = safeNum(e.target.value, it.kcalPerUnit);
+            if (!suppressCloudSave) cloudSaveNow();
+            renderTotals();
+            renderItems();
+          });
+
+          const qtyWrap = document.createElement("div");
+          qtyWrap.innerHTML = `<label style="margin:0 0 6px 0;">qty</label>`;
+          const qtyPill = document.createElement("div");
+          qtyPill.className = "qtyPill";
+
+          const minus = document.createElement("button");
+          minus.textContent = "−";
+
+          const qtyInput = document.createElement("input");
+          qtyInput.type = "number";
+          qtyInput.min = "0";
+          qtyInput.step = String(safeNum(it.step, 1) || 1);
+          qtyInput.value = String(it.qty);
+
+          const plus = document.createElement("button");
+          plus.textContent = "+";
+
+          const applyQty = (newQty) => {
+            const step = safeNum(it.step, 1) || 1;
+            const q = Math.max(0, Math.round((newQty / step)) * step);
+            it.qty = Math.round(q * 100) / 100;
+            if (it.qty === 0) {
+              // auto-remove if qty hits 0
+              state.items = state.items.filter(x => x.id !== it.id);
+            }
+            if (!suppressCloudSave) cloudSaveNow();
+            renderTotals();
+            renderItems();
+          };
+
+          minus.addEventListener("click", () => applyQty(safeNum(it.qty,0) - (safeNum(it.step,1)||1)));
+          plus.addEventListener("click", () => applyQty(safeNum(it.qty,0) + (safeNum(it.step,1)||1)));
+          qtyInput.addEventListener("change", (e) => applyQty(safeNum(e.target.value, it.qty)));
+
+          qtyPill.appendChild(minus);
+          qtyPill.appendChild(qtyInput);
+          qtyPill.appendChild(plus);
+          qtyWrap.appendChild(qtyPill);
+
+          const del = document.createElement("button");
+          del.className = "btnDanger";
+          del.textContent = "Remove";
+          del.addEventListener("click", () => {
+            state.items = state.items.filter(x => x.id !== it.id);
+            if (!suppressCloudSave) cloudSaveNow();
+            renderAll();
+          });
+
+          right.appendChild(qtyWrap);
+          right.appendChild(kcalEdit);
+          right.appendChild(del);
+
+          main.appendChild(left);
+          main.appendChild(right);
+
+          wrap.appendChild(thumb);
+          wrap.appendChild(main);
+          box.appendChild(wrap);
+        });
+    }
+
+    function renderCatalog(){
+      const box = $("catalog");
+      box.innerHTML = "";
+
+      state.catalog.forEach((t) => {
+        const wrap = document.createElement("div");
+        wrap.className = "item";
+
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+        if (t.imageUrl) {
+          const img = document.createElement("img");
+          img.src = t.imageUrl;
+          img.alt = t.name;
+          img.loading = "lazy";
+          img.onerror = () => { thumb.textContent = "Image\nfailed"; };
+          thumb.appendChild(img);
+        } else {
+          thumb.textContent = "No\nimage";
+        }
+
+        const main = document.createElement("div");
+        main.className = "itemMain";
+
+        const left = document.createElement("div");
+        left.className = "itemLeft";
+        left.innerHTML = `
+          <div class="itemName">${escapeHtml(t.name)}</div>
+          <div class="itemMeta">Step: ${formatQty(safeNum(t.step,1))} • Unit: ${escapeHtml(t.unit)}</div>
+        `;
+
+        const right = document.createElement("div");
+        right.className = "itemRight";
+
+        const kcalEdit = document.createElement("div");
+        kcalEdit.className = "miniInput";
+        kcalEdit.innerHTML = `
+          <label style="margin:0 0 6px 0;">kcal/${escapeHtml(t.unit)}</label>
+          <input type="number" step="1" min="0" value="${safeNum(t.kcalPerUnit,0)}" />
+        `;
+        kcalEdit.querySelector("input").addEventListener("change", (e) => {
+          t.kcalPerUnit = safeNum(e.target.value, t.kcalPerUnit);
+          // if kibble entry exists, keep kcalPerCup synced to that (nice quality of life)
+          if (t.id === "proplan_kibble") {
+            state.settings.kcalPerCup = safeNum(t.kcalPerUnit, state.settings.kcalPerCup);
+            $("kcalPerCup").value = state.settings.kcalPerCup;
+          }
+          if (!suppressCloudSave) cloudSaveNow();
+          renderTreatSelect();
+          renderTotals();
+        });
+
+        const imgEdit = document.createElement("div");
+        imgEdit.className = "miniInput";
+        imgEdit.innerHTML = `
+          <label style="margin:0 0 6px 0;">Image URL</label>
+          <input type="text" value="${t.imageUrl || ""}" placeholder="https://..." />
+        `;
+        imgEdit.querySelector("input").addEventListener("change", (e) => {
+          t.imageUrl = (e.target.value || "").trim();
+          if (!suppressCloudSave) cloudSaveNow();
+          renderCatalog();
+          renderItems();
+        });
+
+        right.appendChild(kcalEdit);
+        right.appendChild(imgEdit);
+
+        main.appendChild(left);
+        main.appendChild(right);
+
+        wrap.appendChild(thumb);
+        wrap.appendChild(main);
+        box.appendChild(wrap);
+      });
+    }
+
+    function renderSettings(){
+      $("weightNow").value = state.settings.currentWeight;
+      $("weightGoal").value = state.settings.goalWeight;
+      $("goalKcal").value = state.settings.goalKcal;
+      $("cups").value = state.settings.cups;
+      $("kcalPerCup").value = state.settings.kcalPerCup;
+      $("timezone").value = state.settings.timezone || "America/New_York";
+    }
+
+    function renderAll(){
+      ensureCorrectDayAndMaybeReset(true);
+      renderTreatSelect();
+      renderSettings();
       renderCatalog();
       renderItems();
-      renderTotalsOnly();
-      cloudSave();
-    });
-
-    const onEdit = () => {
-      t.name = name.value.trim() || "Untitled treat";
-      t.kcalPerUnit = clampNum(kcal.value);
-      t.unitLabel = unit.value.trim() || "unit";
-      const st = clampNum(step.value);
-      t.step = (st <= 0 ? 1 : st);
-      t.imageUrl = img.value.trim();
-
-      state.items.forEach(it => {
-        if(it.catalogId === t.id){
-          it.name = t.name;
-          it.kcalPerUnit = t.kcalPerUnit;
-          it.unitLabel = t.unitLabel;
-          it.step = t.step;
-          it.imageUrl = t.imageUrl;
-        }
-      });
-
-      renderTreatDropdown();
-      renderTotalsOnly();
-      cloudSave();
-    };
-    [name,kcal,unit,step,img].forEach(el => el.addEventListener("input", onEdit));
-
-    row.appendChild(name);
-    row.appendChild(kcal);
-    row.appendChild(unit);
-    row.appendChild(step);
-    row.appendChild(img);
-    row.appendChild(del);
-
-    const preview = document.createElement("div");
-    preview.style.display = "flex";
-    preview.style.gap = "10px";
-    preview.style.alignItems = "center";
-    preview.style.marginTop = "10px";
-
-    const thumb = document.createElement("div");
-    thumb.className = "treatThumb";
-    const url = safeImg(t.imageUrl);
-    if(url){
-      const im = document.createElement("img");
-      im.src = url;
-      im.alt = t.name;
-      im.loading = "lazy";
-      im.referrerPolicy = "no-referrer";
-      im.onerror = () => { thumb.innerHTML = "🦴"; };
-      thumb.appendChild(im);
-    } else {
-      thumb.textContent = "🦴";
+      renderTotals();
     }
 
-    const cap = document.createElement("div");
-    cap.className = "hint";
-    cap.innerHTML = `<div><b>Preview</b></div><div>${t.kcalPerUnit} kcal / ${t.unitLabel} • step ${t.step}</div>`;
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
 
-    preview.appendChild(thumb);
-    preview.appendChild(cap);
+    /******************************************************************
+     * Actions
+     ******************************************************************/
+    function addSelectedTreat(){
+      const id = $("treatSelect").value;
+      const t = getCatalogItem(id);
+      if (!t) return;
 
-    wrap.appendChild(row);
-    wrap.appendChild(preview);
-    elCatalog.appendChild(wrap);
-  });
-}
+      const step = safeNum(t.step, 1) || 1;
+      let qty = safeNum($("qtyInput").value, 1);
+      qty = Math.round((qty / step)) * step;
+      qty = Math.round(qty * 100) / 100;
+      if (qty <= 0) return;
 
-/* =========================
-   TOTALS + PROGRESS BAR
-========================= */
-function getTreatBudget(){
-  if(state.settings.treatBudget != null && clampNum(state.settings.treatBudget) > 0) return clampNum(state.settings.treatBudget);
-  return Math.round(clampNum(state.settings.goalKcal) * 0.10);
-}
+      // Special case: kibble entry isn't a "treat" log item; it lives in settings (cups)
+      if (t.id === "proplan_kibble") {
+        // add to cups instead
+        state.settings.cups = qty; // treat qty input as cups
+        state.settings.kcalPerCup = safeNum(t.kcalPerUnit, state.settings.kcalPerCup);
+        $("cups").value = state.settings.cups;
+        $("kcalPerCup").value = state.settings.kcalPerCup;
+        if (!suppressCloudSave) cloudSaveNow();
+        renderTotals();
+        return;
+      }
 
-function renderTotalsOnly(){
-  recalcAndUpdate();
-}
+      state.items.push({
+        id: uid(),
+        catalogId: t.id,
+        name: t.name,
+        qty,
+        unit: t.unit,
+        kcalPerUnit: safeNum(t.kcalPerUnit, 0),
+        step: step,
+        imageUrl: t.imageUrl || "",
+        ts: Date.now()
+      });
 
-function recalcAndUpdate(){
-  syncHeader();
+      if (!suppressCloudSave) cloudSaveNow();
+      renderItems();
+      renderTotals();
+    }
 
-  const food = clampNum(state.settings.cups) * clampNum(state.settings.kcalPerCup);
+    function addCustomEntry(){
+      const name = ($("customName").value || "").trim();
+      const kcal = safeNum($("customKcal").value, NaN);
+      const img = ($("customImg").value || "").trim();
 
-  let treatSum = 0;
-  let customSum = 0;
-  state.items.forEach(it => {
-    const cals = itemCalories(it);
-    if(it.type === "custom") customSum += cals;
-    else treatSum += cals;
-  });
+      if (!name || !Number.isFinite(kcal)) return;
 
-  const total = food + treatSum + customSum;
+      state.items.push({
+        id: uid(),
+        catalogId: "custom",
+        name,
+        qty: 1,
+        unit: "unit",
+        kcalPerUnit: kcal,
+        step: 1,
+        imageUrl: img,
+        ts: Date.now()
+      });
 
-  elFoodTotal.textContent = `${Math.round(food)} kcal`;
-  elTreatTotal.textContent = `${Math.round(treatSum)} kcal`;
-  elCustomTotal.textContent = `${Math.round(customSum)} kcal`;
-  elDailyTotal.textContent = `${Math.round(total)} kcal`;
+      $("customName").value = "";
+      $("customKcal").value = "";
+      $("customImg").value = "";
 
-  const goal = clampNum(state.settings.goalKcal);
-  elGoalText.textContent = `${Math.round(goal)}`;
+      if (!suppressCloudSave) cloudSaveNow();
+      renderItems();
+      renderTotals();
+    }
 
-  const pct = goal > 0 ? (total / goal) * 100 : 0;
-  const clamped = Math.min(160, Math.max(0, pct));
-  elBarFill.style.width = `${clamped}%`;
+    function clearToday(){
+      state.items = [];
+      if (!suppressCloudSave) cloudSaveNow();
+      renderAll();
+    }
 
-  const treatBudget = getTreatBudget();
-  const treatTotal = treatSum + customSum;
+    function newDayManual(){
+      state.dayKey = todayKey();
+      state.items = [];
+      if (!suppressCloudSave) cloudSaveNow();
+      renderAll();
+    }
 
-  if(total <= goal){
-    elOverTag.className = "tag ok";
-    elOverTag.textContent = `Goal: ${Math.round(goal)} kcal`;
-  } else {
-    elOverTag.className = "tag bad";
-    elOverTag.textContent = `Over goal by ${Math.round(total - goal)} kcal`;
-  }
+    function saveSettings(){
+      state.settings.currentWeight = safeNum($("weightNow").value, state.settings.currentWeight);
+      state.settings.goalWeight = safeNum($("weightGoal").value, state.settings.goalWeight);
+      state.settings.goalKcal = safeNum($("goalKcal").value, state.settings.goalKcal);
+      state.settings.cups = safeNum($("cups").value, state.settings.cups);
+      state.settings.kcalPerCup = safeNum($("kcalPerCup").value, state.settings.kcalPerCup);
+      state.settings.timezone = ($("timezone").value || "America/New_York").trim();
 
-  if(goal <= 0){
-    elBarFill.style.background = "var(--blue)";
-    elStatusText.className = "status warn";
-    elStatusText.textContent = "Set a daily calorie goal to use the progress bar.";
-    elBarHint.textContent = "Tip: set goal to 1800 (or whatever your vet recommends).";
-    return;
-  }
+      // keep kibble catalog synced with kcalPerCup
+      const kibble = getCatalogItem("proplan_kibble");
+      if (kibble) kibble.kcalPerUnit = state.settings.kcalPerCup;
 
-  if(pct < 80){
-    elBarFill.style.background = "var(--blue)";
-    elStatusText.className = "status";
-    elStatusText.textContent = "Under goal. Keep it steady.";
-    elBarHint.textContent = `Treat budget guideline: ≤ ${treatBudget} kcal (you’re at ${Math.round(treatTotal)}).`;
-  } else if(pct <= 100){
-    elBarFill.style.background = "var(--ok)";
-    elStatusText.className = "status ok";
-    elStatusText.textContent = "On track. ✅";
-    elBarHint.textContent = `Treat budget guideline: ≤ ${treatBudget} kcal (you’re at ${Math.round(treatTotal)}).`;
-  } else if(pct <= 115){
-    elBarFill.style.background = "var(--warn)";
-    elStatusText.className = "status warn";
-    elStatusText.textContent = `Careful — over goal by ${Math.round(total - goal)} kcal.`;
-    elBarHint.textContent = `Treat budget guideline: ≤ ${treatBudget} kcal (you’re at ${Math.round(treatTotal)}).`;
-  } else {
-    elBarFill.style.background = "var(--bad)";
-    elStatusText.className = "status bad";
-    elStatusText.textContent = `Over goal by ${Math.round(total - goal)} kcal — today is heavy.`;
-    elBarHint.textContent = `Treat budget guideline: ≤ ${treatBudget} kcal (you’re at ${Math.round(treatTotal)}).`;
-  }
+      if (!suppressCloudSave) cloudSaveNow();
+      renderAll();
+    }
 
-  if(treatTotal > treatBudget){
-    elBarHint.textContent += ` ⚠️ Treats are over budget by ${Math.round(treatTotal - treatBudget)} kcal.`;
-  }
+    function stepQty(delta){
+      const selId = $("treatSelect").value;
+      const t = getCatalogItem(selId);
+      const step = safeNum(t?.step, 1) || 1;
+      const curr = safeNum($("qtyInput").value, 1);
+      let next = curr + delta * step;
+      next = Math.max(0, Math.round((next / step)) * step);
+      next = Math.round(next * 100) / 100;
+      $("qtyInput").value = String(next);
+    }
 
-  elDayTag.textContent = `Day: ${state.dayKey || todayKey()}`;
-}
+    /******************************************************************
+     * Passcode gate
+     ******************************************************************/
+    function showPass(){
+      $("passModal").style.display = "flex";
+      $("passInput").value = "";
+      $("passErr").style.display = "none";
+      setTimeout(() => $("passInput").focus(), 50);
+    }
 
-/* =========================
-   ACTIONS
-========================= */
-document.getElementById("addTreatBtn").addEventListener("click", () => {
-  const id = elTreatSelect.value;
-  const t = state.catalog.find(x => x.id === id);
-  if(!t){ alert("Pick a treat first."); return; }
-  const qty = clampNum(elTreatQty.value);
-  if(qty <= 0){ alert("Quantity must be > 0."); return; }
+    function hidePass(){
+      $("passModal").style.display = "none";
+    }
 
-  state.items.push({
-    id: crypto.randomUUID(),
-    type: "catalog",
-    catalogId: t.id,
-    name: t.name,
-    kcalPerUnit: clampNum(t.kcalPerUnit),
-    unitLabel: t.unitLabel || "unit",
-    step: clampNum(t.step || 1),
-    imageUrl: t.imageUrl || "",
-    qty
-  });
+    function checkPass(){
+      const v = ($("passInput").value || "").trim();
+      if (v === PASSCODE) {
+        localStorage.setItem(PASS_LS_KEY, "1");
+        hidePass();
+        initFirebaseAndApp();
+      } else {
+        $("passErr").style.display = "block";
+      }
+    }
 
-  renderItems();
-  renderTotalsOnly();
-  cloudSave();
-});
+    /******************************************************************
+     * Init
+     ******************************************************************/
+    function wireUI(){
+      $("treatSelect").addEventListener("change", syncQtyStepHint);
+      $("btnAdd").addEventListener("click", addSelectedTreat);
+      $("btnAddCustom").addEventListener("click", addCustomEntry);
+      $("btnClearToday").addEventListener("click", clearToday);
+      $("btnNewDay").addEventListener("click", newDayManual);
+      $("btnSaveSettings").addEventListener("click", saveSettings);
 
-document.getElementById("addCustomBtn").addEventListener("click", () => {
-  const name = (elCustomName.value || "").trim();
-  const kcal = clampNum(elCustomKcal.value);
-  const qty = clampNum(elCustomQty.value);
-  const img = (elCustomImg.value || "").trim();
+      $("qtyMinus").addEventListener("click", () => stepQty(-1));
+      $("qtyPlus").addEventListener("click", () => stepQty(1));
 
-  if(!name){ alert("Custom name is required."); return; }
-  if(kcal <= 0){ alert("Calories per unit must be > 0."); return; }
-  if(qty <= 0){ alert("Quantity must be > 0."); return; }
+      $("passBtn").addEventListener("click", checkPass);
+      $("passInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") checkPass();
+      });
+    }
 
-  state.items.push({
-    id: crypto.randomUUID(),
-    type: "custom",
-    name,
-    kcalPerUnit: kcal,
-    unitLabel: "unit",
-    step: 1,
-    imageUrl: img,
-    qty
-  });
+    function initFirebaseAndApp(){
+      try{
+        app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
 
-  elCustomName.value = "";
-  elCustomImg.value = "";
-  elCustomKcal.value = "";
-  elCustomQty.value = 1;
+        $("statusPill").textContent = "Connecting…";
+        $("syncPill").textContent = "Sync: —";
 
-  renderItems();
-  renderTotalsOnly();
-  cloudSave();
-});
+        // Make sure we’re on the right day locally before syncing
+        state.dayKey = todayKey();
+        ensureCorrectDayAndMaybeReset(false);
 
-document.getElementById("addCatalogBtn").addEventListener("click", () => {
-  state.catalog.push({
-    id: crypto.randomUUID(),
-    name: "New treat",
-    kcalPerUnit: 10,
-    unitLabel: "treat",
-    step: 1,
-    imageUrl: ""
-  });
-  renderTreatDropdown();
-  renderCatalog();
-  cloudSave();
-});
+        startCloudSync();
+        scheduleDayFlipWatcher();
+        renderAll();
+      } catch (e) {
+        console.error(e);
+        $("statusPill").textContent = "Offline";
+        $("warnBox").innerHTML = `<strong>Status:</strong> Firebase config missing/invalid. Paste your config at the top of the file.`;
+      }
+    }
 
-document.getElementById("newDayBtn").addEventListener("click", () => {
-  if(!confirm("Clear today’s items? (Food/settings stay.)")) return;
-  state.items = [];
-  state.dayKey = todayKey();
-  renderItems();
-  renderTotalsOnly();
-  cloudSave();
-});
+    // Boot
+    wireUI();
 
-document.getElementById("resetAllBtn").addEventListener("click", () => {
-  if(!confirm("Reset everything to defaults (including catalog)?")) return;
-  state.settings = {
-    currentWeight: 114.0, goalWeight: 100.0, goalKcal: 1800,
-    treatBudget: null, cups: 4, kcalPerCup: 384
-  };
-  state.catalog = deepCopy(DEFAULT_CATALOG);
-  state.items = [];
-  state.dayKey = todayKey();
-  syncHeader();
-  syncSettingsInputs();
-  renderTreatDropdown();
-  updateQtyStepFromSelection();
-  renderCatalog();
-  renderItems();
-  renderTotalsOnly();
-  cloudSave();
-});
+    // Passcode logic
+    const unlocked = localStorage.getItem(PASS_LS_KEY) === "1";
+    if (!unlocked) showPass();
+    else initFirebaseAndApp();
 
-document.getElementById("copyBtn").addEventListener("click", async () => {
-  const food = clampNum(state.settings.cups) * clampNum(state.settings.kcalPerCup);
-  const goal = clampNum(state.settings.goalKcal);
-
-  let treatSum = 0, customSum = 0;
-  state.items.forEach(it => {
-    const c = itemCalories(it);
-    if(it.type === "custom") customSum += c; else treatSum += c;
-  });
-  const total = food + treatSum + customSum;
-
-  const lines = [];
-  lines.push(`Dog Treat Tracker — ${state.dayKey || todayKey()}`);
-  lines.push(`Weight: ${round1(state.settings.currentWeight).toFixed(1)} lb (goal ${round1(state.settings.goalWeight).toFixed(1)} lb)`);
-  lines.push(`Goal: ${Math.round(goal)} kcal`);
-  lines.push(`Food: ${state.settings.cups} cups × ${state.settings.kcalPerCup} = ${Math.round(food)} kcal`);
-  lines.push(`Catalog treats: ${Math.round(treatSum)} kcal`);
-  lines.push(`Custom items: ${Math.round(customSum)} kcal`);
-  lines.push(`TOTAL: ${Math.round(total)} kcal`);
-  if(state.items.length){
-    lines.push("");
-    lines.push("Items:");
-    state.items.forEach(it => lines.push(`- ${it.name}: ${it.qty} × ${it.kcalPerUnit} = ${Math.round(itemCalories(it))} kcal`));
-  }
-
-  try{
-    await navigator.clipboard.writeText(lines.join("\n"));
-    alert("Copied!");
-  }catch{
-    alert("Clipboard blocked. Copy manually:\n\n" + lines.join("\n"));
-  }
-});
-
-function wireSettings(){
-  const onChange = () => {
-    state.settings.currentWeight = clampNum(elCurrentWeight.value);
-    state.settings.goalWeight = clampNum(elGoalWeight.value);
-    state.settings.goalKcal = clampNum(elGoalKcal.value);
-
-    const tb = (elTreatBudget.value || "").trim();
-    state.settings.treatBudget = tb === "" ? null : clampNum(tb);
-
-    state.settings.cups = clampNum(elCups.value);
-    state.settings.kcalPerCup = clampNum(elKcalPerCup.value);
-
-    renderTotalsOnly();
-    cloudSave();
-  };
-  [elCurrentWeight, elGoalWeight, elGoalKcal, elTreatBudget, elCups, elKcalPerCup]
-    .forEach(el => el.addEventListener("input", onChange));
-}
-elTreatSelect.addEventListener("change", updateQtyStepFromSelection);
-
-/* =========================
-   INIT
-========================= */
-(function init(){
-  // start with defaults locally; Firebase will override once it loads
-  state.catalog = deepCopy(DEFAULT_CATALOG);
-  state.dayKey = todayKey();
-
-  syncHeader();
-  syncSettingsInputs();
-  renderTreatDropdown();
-  updateQtyStepFromSelection();
-  renderCatalog();
-  renderItems();
-  wireSettings();
-  recalcAndUpdate();
-
-  // Firebase connect
-  try{
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    cloudRef = db.ref(CLOUD_PATH);
-    setSync("Sync: connecting…", "tag warn");
-    startCloudSync();
-  }catch(e){
-    console.warn("Firebase init failed:", e);
-    setSync("Sync: Firebase error", "tag bad");
-  }
-})();
-</script>
+  </script>
 </body>
 </html>
