@@ -615,12 +615,25 @@ function renderItems(){
     const del = document.createElement("button");
     del.className = "danger";
     del.textContent = "Remove";
-    del.addEventListener("click", () => {
-      state.items.splice(idx, 1);
-      renderItems();
-      renderTotalsOnly();
-      cloudSave();
-    });
+   del.addEventListener("click", () => {
+  const treatName = (t.name || "this treat").trim();
+  const ok = confirm(`Delete "${treatName}"?\n\nThis will also remove it from today's list.`);
+  if (!ok) return;
+
+  // Remove any today items referencing this catalog treat
+  state.items = state.items.filter(it => it.catalogId !== t.id);
+
+  // Remove from catalog
+  state.catalog.splice(idx, 1);
+
+  // Re-render + save (keep your existing calls if they differ)
+  renderTreatDropdown();
+  renderCatalog();
+  renderItems();
+  renderTotalsOnly();
+  cloudSave();
+});
+
 
     right.appendChild(qty);
     right.appendChild(cals);
