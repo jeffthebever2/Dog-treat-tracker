@@ -20,17 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # If your site is just static files in repo root:
-      - name: Prepare site
-        run: |
-          mkdir -p _site
-          cp -r . _site
-          rm -rf _site/.git _site/.github
-
+      # Upload the repo root as the Pages artifact (static site)
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: .
 
   deploy:
     needs: build
@@ -39,6 +33,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
