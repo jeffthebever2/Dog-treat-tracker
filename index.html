@@ -656,18 +656,22 @@
       <h1>🐶</h1>
       <h2>Dog Treat Tracker</h2>
       <p>Family access only</p>
+      <div style="margin-top: 16px; padding: 12px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; font-size: 11px; color: var(--muted); font-family: monospace;">
+        <div>Debug Info:</div>
+        <div id="debugInfo">Waiting for input...</div>
+      </div>
     </div>
     
     <div id="passcodeError" class="error-msg">Incorrect passcode</div>
     
     <div class="passcode-input-wrapper">
       <input 
-        type="password" 
+        type="tel" 
         id="passcodeInput" 
         class="passcode-input" 
         maxlength="4" 
         placeholder="••••"
-        inputmode="numeric"
+        pattern="[0-9]*"
         autocomplete="off"
       />
     </div>
@@ -925,6 +929,15 @@ let state = {
 };
 
 let isUnlocked = false;
+
+// Wait for DOM to be fully loaded before running any code
+window.onload = function() {
+  
+  // Test if JavaScript is working
+  const debugInfo = document.getElementById('debugInfo');
+  if (debugInfo) {
+    debugInfo.innerHTML = 'JavaScript is running! Click Unlock to test.';
+  }
 
 // DOM Elements - Passcode
 const passcodeContainer = document.getElementById('passcodeContainer');
@@ -1479,20 +1492,26 @@ lockBtn.addEventListener('click', () => {
 // Update checkPasscode to set session
 function checkPasscode() {
   const entered = passcodeInput.value.trim();
+  debugInfo.innerHTML = `Entered: "${entered}"<br>Length: ${entered.length}<br>Expected: "${MASTER_PASSCODE}"<br>Match: ${entered === MASTER_PASSCODE}`;
   console.log('Checking passcode. Entered:', entered, 'Length:', entered.length, 'Expected:', MASTER_PASSCODE);
   
   if (entered === MASTER_PASSCODE) {
     console.log('Passcode correct! Unlocking...');
+    debugInfo.innerHTML = `✓ Correct! Unlocking...`;
     isUnlocked = true;
     sessionStorage.setItem('unlocked', 'true');
-    passcodeContainer.style.display = 'none';
-    appContainer.classList.add('show');
-    passcodeInput.value = '';
-    passcodeError.classList.remove('show');
-    loadData();
-    startAutoResetWatcher();
+    
+    setTimeout(() => {
+      passcodeContainer.style.display = 'none';
+      appContainer.classList.add('show');
+      passcodeInput.value = '';
+      passcodeError.classList.remove('show');
+      loadData();
+      startAutoResetWatcher();
+    }, 500);
   } else {
     console.log('Passcode incorrect!');
+    debugInfo.innerHTML = `✗ Incorrect passcode!<br>Entered: "${entered}"<br>Expected: "${MASTER_PASSCODE}"`;
     passcodeError.classList.add('show');
     passcodeInput.classList.add('error');
     passcodeInput.value = '';
@@ -1501,34 +1520,78 @@ function checkPasscode() {
     setTimeout(() => {
       passcodeInput.classList.remove('error');
       passcodeError.classList.remove('show');
-    }, 2000);
+      debugInfo.innerHTML = 'Waiting for input...';
+    }, 3000);
   }
 }
 
-unlockBtn.addEventListener('click', () => {
-  console.log('Unlock button clicked');
-  checkPasscode();
-});
+unlockBtn.onclick = function() {
+  const debugInfo = document.getElementById('debugInfo');
+  const passcodeInput = document.getElementById('passcodeInput');
+  const passcodeContainer = document.getElementById('passcodeContainer');
+  const appContainer = document.getElementById('appContainer');
+  
+  debugInfo.innerHTML = 'Button clicked! Reading value...';
+  
+  const entered = passcodeInput.value.trim();
+  debugInfo.innerHTML = `Entered: "${entered}"<br>Expected: "0436"<br>Match: ${entered === '0436'}`;
+  
+  if (entered === '0436') {
+    debugInfo.innerHTML = '✓ CORRECT! Unlocking...';
+    passcodeContainer.style.display = 'none';
+    appContainer.classList.add('show');
+    loadData();
+    startAutoResetWatcher();
+  } else {
+    debugInfo.innerHTML = '✗ WRONG!<br>You entered: "' + entered + '"<br>Expected: "0436"';
+    passcodeInput.value = '';
+  }
+};
 
 passcodeInput.addEventListener('keypress', (e) => {
   console.log('Key pressed:', e.key);
   if (e.key === 'Enter') {
+    debugInfo.innerHTML = 'Enter pressed...';
     console.log('Enter key detected');
     checkPasscode();
   }
 });
 
 passcodeInput.addEventListener('input', (e) => {
-  console.log('Input event:', e.target.value);
-  // Only allow numbers
-  e.target.value = e.target.value.replace(/[^0-9]/g, '');
+  debugInfo.innerHTML = `Input event fired!<br>Raw value: "${e.target.value}"`;
+  
+  const val = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = val;
+  debugInfo.innerHTML = `Typing: "${val}" (${val.length}/4 digits)`;
   
   // Auto-submit when 4 digits entered
-  if (e.target.value.length === 4) {
-    console.log('4 digits entered, auto-checking');
+  if (val.length === 4) {
+    debugInfo.innerHTML = `4 digits entered: "${val}"<br>Auto-checking in 300ms...`;
     setTimeout(() => checkPasscode(), 300);
   }
 });
 
+// Also try keyup event as backup
+passcodeInput.addEventListener('keyup', (e) => {
+  debugInfo.innerHTML = `Keyup event! Key: ${e.key}<br>Value: "${e.target.value}"`;
+  
+  const val = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = val;
+  
+  if (val.length === 4) {
+    debugInfo.innerHTML = `4 digits detected: "${val}"<br>Checking now...`;
+    setTimeout(() => checkPasscode(), 300);
+  }
+});
+
+// Also try change event as backup
+passcodeInput.addEventListener('change', (e) => {
+  debugInfo.innerHTML = `Change event! Value: "${e.target.value}"`;
+  checkPasscode();
+});
+
 // Call init when page loads
 init();
+
+// End of window.onload wrapper
+};
