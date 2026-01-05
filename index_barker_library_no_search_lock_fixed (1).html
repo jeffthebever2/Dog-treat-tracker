@@ -1,0 +1,2160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dog Treat Tracker • Barker</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --muted:#97a3b8;
+      --text:#e7eefc;
+      --blue:#4aa3ff;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --ring: rgba(74,163,255,.35);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius2: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(74,163,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 110% 10%, rgba(34,197,94,.18), transparent 55%),
+        radial-gradient(800px 600px at 40% 120%, rgba(245,158,11,.14), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      line-height:1.35;
+    }
+    .wrap{ max-width: 1150px; margin:0 auto; padding: 22px 16px 40px; }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 16px; }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .logo{
+      width:42px; height:42px; border-radius: 12px;
+      background: linear-gradient(135deg, #6ee7ff, #4aa3ff 45%, #7c3aed);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.04), var(--shadow);
+      display:grid; place-items:center; font-weight:900;
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; }
+    .title h1{ font-size:18px; margin:0; font-weight:900; }
+    .title .sub{ font-size:12px; color: var(--muted); font-family: var(--mono); line-height:1.45; }
+
+    .btn{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease, filter .2s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:hover{ background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.18); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(74,163,255,.95), rgba(124,58,237,.85));
+      border-color: rgba(255,255,255,.18);
+    }
+    .btn.danger{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.35);
+    }
+    .btn.ghost{ background: transparent; border-color: rgba(255,255,255,.12); }
+
+    .grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap:16px; align-items:start; }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 14px 10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(10,20,40,.25);
+    }
+    .card .hd .left{ display:flex; flex-direction:column; gap:2px; }
+    .card .hd .h{ font-weight: 900; letter-spacing:.2px; }
+    .card .hd .hint{ color: var(--muted); font-size: 12px; font-family: var(--mono); }
+    .card .bd{ padding: 14px; }
+
+    .sectionSep{ margin: 14px 0; border:none; border-top: 1px solid rgba(255,255,255,.10); }
+    .sectionTitle{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin: 2px 0 10px; }
+    .sectionTitle .h{ font-weight:900; letter-spacing:.2px; }
+    .sectionTitle .mini{ font-family: var(--mono); color: var(--muted); font-size: 12px; }
+
+    .stats{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+    @media (max-width: 680px){ .stats{ grid-template-columns: repeat(2, 1fr); } }
+    .stat{
+      padding: 12px; border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.14);
+    }
+    .stat .k{ font-size: 12px; color: var(--muted); margin-bottom:4px; }
+    .stat .v{ font-size: 20px; font-weight: 900; letter-spacing:.2px; }
+    .stat .v.ok{ color: var(--ok); }
+    .stat .v.warn{ color: var(--warn); }
+    .stat .v.bad{ color: var(--bad); }
+
+    .badge{
+      font-size: 12px; font-weight: 900;
+      padding: 7px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      white-space:nowrap;
+    }
+    .badge.ok{ border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.12); }
+    .badge.warn{ border-color: rgba(245,158,11,.45); background: rgba(245,158,11,.12); }
+    .badge.bad{ border-color: rgba(239,68,68,.45); background: rgba(239,68,68,.12); }
+
+    .progress{
+      margin-top: 12px; padding: 12px; border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.14);
+    }
+    .bar{
+      height: 12px; border-radius: 999px;
+      background: rgba(255,255,255,.07); overflow:hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .bar > div{
+      height:100%; width:0%;
+      background: linear-gradient(90deg, var(--ok), var(--blue));
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
+    .progress .hint{ margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 560px){ .row{ grid-template-columns: 1fr; } }
+    label{ display:block; font-size:12px; color: var(--muted); margin-bottom: 6px; font-weight: 800; }
+    input, select, textarea{
+      width: 100%; padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+      transition: box-shadow .15s ease, border-color .2s ease;
+      resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus{ border-color: rgba(74,163,255,.45); box-shadow: 0 0 0 4px var(--ring); }
+
+    .actions{ display:flex; flex-wrap:wrap; gap: 10px; margin-top: 12px; }
+    .pill{ font-family: var(--mono); color: var(--muted); font-size: 12px; }
+
+    .itemList{ display:flex; flex-direction:column; gap:10px; }
+    .item{
+      position: relative;
+      display:grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 10px;
+      align-items:center;
+      padding: 12px;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      overflow:hidden;
+      touch-action: pan-y;
+    }
+    .item.swiping{ transition:none !important; }
+    .item .swipeHint{
+      position:absolute;
+      right: 10px;
+      top: 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(239,68,68,.9);
+      opacity: .0;
+      pointer-events:none;
+      transition: opacity .2s ease;
+    }
+    .item.canSwipe .swipeHint{ opacity: .45; }
+    .item-thumb{
+      width:44px; height:44px; border-radius: 12px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      font-size: 20px;
+    }
+    .item-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .item-name{ font-weight: 900; }
+    .item-details{ font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+
+    .item-controls{ display:flex; align-items:center; gap:10px; }
+    .item-controls input{ width: 90px; text-align:center; padding: 8px 10px; border-radius: 12px; }
+    .item-calories{ font-family: var(--mono); font-size: 12px; color: var(--muted); width: 92px; text-align:right; }
+    .btn-action{
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+    }
+    .btn-action.danger{ background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.35); }
+    .empty{
+      padding: 18px; border-radius: var(--radius2);
+      border: 1px dashed rgba(255,255,255,.14);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      background: rgba(0,0,0,.12);
+      white-space: pre-line;
+    }
+
+    /* Passcode */
+    #passcodeContainer{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding: 22px 14px; }
+    .lockCard{
+      width: min(520px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .lockCard .bd{ padding: 18px; }
+    .lockCard h2{ margin:0 0 6px; font-weight: 900; }
+    .lockCard .mini{ margin:0 0 14px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .passRow{ display:flex; gap: 10px; align-items:center; }
+    #passcodeInput{ font-family: var(--mono); font-size: 20px; letter-spacing: 8px; text-align:center; }
+    #passcodeError{ margin-top: 10px; display:none; color: rgba(239,68,68,.95); font-weight: 900; font-family: var(--mono); font-size: 12px; }
+    #passcodeError.show{ display:block; }
+    #passcodeInput.error{ border-color: rgba(239,68,68,.55); box-shadow: 0 0 0 4px rgba(239,68,68,.22); }
+
+    /* Modal */
+    #modalOverlay{ position: fixed; inset: 0; background: rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding: 18px; z-index: 50; }
+    #modalOverlay.show{ display:flex; }
+    .modal{
+      width: min(600px, 100%);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal .hd{ padding: 14px 14px 10px; border-bottom: 1px solid rgba(255,255,255,.08); font-weight: 900; }
+    .modal .bd{ padding: 14px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .modal .ft{ padding: 14px; border-top: 1px solid rgba(255,255,255,.08); display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 60;
+      white-space:nowrap;
+    }
+    .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+    /* Tabs */
+    .tabs{ display:flex; gap:10px; flex-wrap:wrap; }
+    .tab{
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 12px;
+      user-select:none;
+      flex: 0 0 auto;
+    }
+    .tab.active{
+      border-color: rgba(74,163,255,.45);
+      background: rgba(74,163,255,.16);
+      box-shadow: 0 0 0 3px rgba(74,163,255,.12);
+    }
+
+    /* Library list */
+    .libList{ display:flex; flex-direction:column; gap:10px; }
+    .libItem{
+      display:grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 10px;
+      align-items:center;
+      padding: 12px;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+    .libItem .meta{ font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top:2px; }
+    .libActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+
+    canvas{
+      width:100%;
+      height: 200px;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+
+    /* Mobile polish */
+    @media (max-width: 520px){
+      .wrap{ padding: 18px 12px 34px; }
+      .topbar{ flex-direction: column; align-items: stretch; }
+      .brand{ width:100%; }
+      .tabs{ overflow-x:auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+      .actions .btn, .actions .btn-action{ flex: 1 1 auto; }
+      .item{
+        grid-template-columns: 44px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .item-controls{
+        grid-column: 1 / -1;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .item-controls input{ width: 100%; text-align:left; }
+      .item-calories{ width:auto; text-align:left; }
+      .btn-action{ width: 100%; }
+      .libItem{
+        grid-template-columns: 44px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .libActions{
+        grid-column: 1 / -1;
+        width:100%;
+        justify-content: flex-start;
+      }
+      .libActions .btn-action{ flex:1 1 30%; }
+    }
+
+    /* App container toggle */
+    #appContainer{ display:none; }
+    #appContainer.show{ display:block; }
+  </style>
+</head>
+<body>
+
+  <!-- PASSCODE SCREEN -->
+  <div id="passcodeContainer">
+    <div class="lockCard">
+      <div class="hd">
+        <div class="left">
+          <div class="h">🔒 Locked</div>
+          <div class="hint">Enter passcode to open Barker’s tracker</div>
+        </div>
+      </div>
+      <div class="bd">
+        <h2>Dog Treat Tracker • Barker</h2>
+        <p class="mini">Synced to Firebase + local backup. Press <span style="font-family:var(--mono);">Enter</span> to unlock.</p>
+        <div class="passRow">
+          <input id="passcodeInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="one-time-code" />
+          <button id="unlockBtn" class="btn primary">Unlock</button>
+        </div>
+        <div id="passcodeError">Incorrect passcode.</div>
+        <div id="debugInfo" class="mini" style="margin-top:10px;">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appContainer">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">🐾</div>
+          <div class="title">
+            <h1>Barker’s Treat Tracker</h1>
+            <div class="sub">
+              Date: <span id="headerDate"></span> • Weight: <span id="headerWeight"></span> lb → Goal: <span id="headerGoal"></span> lb • Goal kcal: <span id="headerGoalCal"></span><br>
+              Treats vs yesterday: <span id="treatCompare">—</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+          <span id="syncBadge" class="badge ok">☁️ Synced</span>
+          <span id="statusBadge" class="badge ok">✓ On Track</span>
+          <button id="lockBtn" class="btn">Lock</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- LEFT -->
+        <div class="card">
+          <div class="hd">
+            <div class="left">
+              <div class="h">Today</div>
+              <div class="hint">Mobile: swipe left on an item to remove</div>
+            </div>
+            <div class="pill" id="itemCount">0 items</div>
+          </div>
+          <div class="bd">
+            <div class="stats">
+              <div class="stat">
+                <div class="k">Total</div>
+                <div class="v ok" id="totalCal">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Food</div>
+                <div class="v" id="foodCal">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Treats</div>
+                <div class="v" id="treatCal">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Custom</div>
+                <div class="v" id="customCal">0</div>
+              </div>
+            </div>
+
+            <div class="progress">
+              <div class="bar"><div id="progressFill"></div></div>
+              <div class="hint" id="progressHint">—</div>
+            </div>
+
+            <hr class="sectionSep" />
+
+            <div class="sectionTitle">
+              <div class="h">Quick actions</div>
+              <div class="mini">Clipboard + safety</div>
+            </div>
+
+            <div class="actions">
+              <button id="copyBtn" class="btn">Copy Summary</button>
+              <button id="undoBtn" class="btn ghost" title="Undo last remove (one step)">Undo Remove</button>
+              <button id="clearDayBtn" class="btn danger">Clear Today</button>
+            </div>
+
+            <hr class="sectionSep" />
+
+            <div class="sectionTitle">
+              <div class="h">Items</div>
+              <div class="mini">Autosaves as you edit</div>
+            </div>
+
+            <div id="emptyState" class="empty">No items yet. Add treats or custom calories on the right.</div>
+            <div id="itemList" class="itemList"></div>
+
+            <hr class="sectionSep" />
+
+            <div class="sectionTitle">
+              <div class="h">Trends</div>
+              <div class="mini">Last 14 days</div>
+            </div>
+            <canvas id="trendCanvas" width="900" height="220"></canvas>
+            <div class="pill" id="trendHint" style="margin-top:8px;">—</div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="card">
+          <div class="hd">
+            <div class="left">
+              <div class="h">Controls</div>
+              <div class="hint">Add • Settings • Library • Backup • History</div>
+            </div>
+          </div>
+          <div class="bd">
+
+            <div class="tabs" role="tablist" aria-label="Controls tabs">
+              <div class="tab active" data-tab="add">Add</div>
+              <div class="tab" data-tab="settings">Settings</div>
+              <div class="tab" data-tab="library">Treat Library</div>
+              <div class="tab" data-tab="backup">Backup</div>
+              <div class="tab" data-tab="history">History</div>
+            </div>
+
+            <hr class="sectionSep" />
+
+            <!-- ADD TAB -->
+            <div id="tab_add">
+              <div class="sectionTitle">
+                <div class="h">Add treat</div>
+                <div class="mini">Search + quick add</div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <label>Search treats</label>
+                <input id="treatSearch" type="text" placeholder="Type to filter… (name)" />
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:end;">
+                <div style="flex:1;">
+                  <label>Treat</label>
+                  <select id="treatSelect">
+                    <option value="">Choose a treat...</option>
+                  </select>
+                </div>
+                <div style="width:120px;">
+                  <label>Qty</label>
+                  <input id="treatQty" type="number" step="1" value="1" />
+                </div>
+              </div>
+
+              <div class="actions">
+                <button id="addTreatBtn" class="btn primary" style="flex:1;">Add Treat</button>
+                <button id="quickAddHalfBtn" class="btn" title="Adds +0.5 of selected treat (if step allows)">+0.5</button>
+                <button id="quickAddOneBtn" class="btn" title="Adds +1 of selected treat">+1</button>
+                <button id="openLibraryBtn" class="btn ghost" title="Manage your treat list">Library</button>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Add custom calories</div>
+                <div class="mini">One-off items</div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Custom name</label>
+                  <input id="customName" type="text" placeholder="e.g., Cheese slice" />
+                </div>
+                <div>
+                  <label>Calories per unit</label>
+                  <input id="customKcal" type="number" step="1" placeholder="e.g., 70" />
+                </div>
+              </div>
+              <div class="row" style="margin-top:12px;">
+                <div>
+                  <label>Quantity</label>
+                  <input id="customQty" type="number" step="1" value="1" />
+                </div>
+                <div style="display:flex; align-items:end;">
+                  <button id="addCustomBtn" class="btn" style="width:100%;">Add Custom</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SETTINGS TAB -->
+            <div id="tab_settings" style="display:none;">
+              <div class="sectionTitle">
+                <div class="h">Barker + goal</div>
+                <div class="mini">Used for progress</div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Current weight (lb)</label>
+                  <input id="currentWeight" type="number" step="0.1" />
+                </div>
+                <div>
+                  <label>Goal weight (lb)</label>
+                  <input id="goalWeight" type="number" step="0.1" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px;">
+                <div>
+                  <label>Daily calorie goal</label>
+                  <input id="goalKcal" type="number" step="1" />
+                </div>
+                <div>
+                  <label>Treat budget (optional)</label>
+                  <input id="treatBudget" type="number" step="1" placeholder="auto = 10% of goal" />
+                </div>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Food</div>
+                <div class="mini">Calories from kibble</div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Food cups today</label>
+                  <input id="foodCups" type="number" step="0.25" />
+                </div>
+                <div>
+                  <label>Calories per cup</label>
+                  <input id="calPerCup" type="number" step="1" />
+                </div>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <!-- RECURRING SECTION (Feature #1) -->
+              <div class="sectionTitle">
+                <div class="h">Recurring treats</div>
+                <div class="mini">Auto-add each day</div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Recurring treat</label>
+                  <select id="recTreatSelect">
+                    <option value="">Choose a treat...</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Qty</label>
+                  <input id="recTreatQty" type="number" step="0.5" value="0.5" />
+                </div>
+              </div>
+              <div class="actions">
+                <button id="addRecurringBtn" class="btn primary" style="flex:1;">Add Recurring</button>
+                <button id="clearRecurringBtn" class="btn ghost">Clear</button>
+              </div>
+
+              <div style="margin-top:10px;" class="pill">These auto-add when the date changes. You can disable or delete them below.</div>
+              <div id="recEmpty" class="empty" style="margin-top:10px; display:none;">No recurring treats yet.</div>
+              <div id="recList" class="libList" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- LIBRARY TAB -->
+            <div id="tab_library" style="display:none;">
+              <div class="sectionTitle">
+                <div class="h">Treat library</div>
+                <div class="mini">Add/edit/delete treats</div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Sort</label>
+                  <select id="libSort">
+                    <option value="name">Name (A→Z)</option>
+                    <option value="kcal">Calories (low→high)</option>
+                    <option value="recent">Recently edited</option>
+                  </select>
+                </div>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Add / edit treat</div>
+                <div class="mini">Autosaves + backs up</div>
+              </div>
+
+              <input type="hidden" id="editTreatId" />
+
+              <div class="row">
+                <div>
+                  <label>Name</label>
+                  <input id="treatName" type="text" placeholder="e.g., Dental stick" />
+                </div>
+                <div>
+                  <label>Calories per unit</label>
+                  <input id="treatKcalPerUnit" type="number" step="1" placeholder="e.g., 70" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px;">
+                <div>
+                  <label>Unit label</label>
+                  <input id="treatUnitLabel" type="text" placeholder="e.g., sticks" />
+                </div>
+                <div>
+                  <label>Step (quantity step)</label>
+                  <input id="treatStep" type="number" step="0.1" placeholder="e.g., 0.5" />
+                </div>
+              </div>
+
+              <div style="margin-top:12px;">
+                <label>Image URL (optional)</label>
+                <input id="treatImageUrl" type="url" placeholder="https://…" />
+              </div>
+
+              <div class="actions" style="margin-top:10px;">
+                <button id="saveTreatBtn" class="btn primary" style="flex:1;">Save Treat</button>
+                <button id="clearTreatFormBtn" class="btn ghost">Clear</button>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Library list</div>
+                <div class="mini" id="libCount">0 treats</div>
+              </div>
+
+              <div id="libEmpty" class="empty">No treats in your library yet. Add one above.</div>
+              <div id="libList" class="libList"></div>
+            </div>
+
+            <!-- BACKUP TAB -->
+            <div id="tab_backup" style="display:none;">
+              <div class="sectionTitle">
+                <div class="h">Backup & restore</div>
+                <div class="mini">Versioned backups</div>
+              </div>
+
+              <div class="empty" style="margin-bottom:12px;">Backups store multiple versions (last 5). Restore any version if your library gets messed up.</div>
+
+              <div class="actions">
+                <button id="exportBtn" class="btn">Export JSON</button>
+                <button id="importBtn" class="btn">Import JSON</button>
+                <button id="restoreFirebaseBackupBtn" class="btn">Restore Firebase Backup</button>
+                <button id="restoreLocalBackupBtn" class="btn">Restore Local Backup</button>
+              </div>
+
+              <div style="margin-top:12px;">
+                <label>Import JSON (paste)</label>
+                <textarea id="importText" rows="6" placeholder='Paste exported JSON here…'></textarea>
+              </div>
+
+              <div class="actions" style="margin-top:10px;">
+                <button id="applyImportBtn" class="btn primary" style="flex:1;">Apply Import</button>
+                <button id="clearImportBtn" class="btn ghost">Clear</button>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Backup history</div>
+                <div class="mini" id="backupStatus">—</div>
+              </div>
+
+              <div id="backupDetails" class="empty">—</div>
+              <div id="backupList" class="libList" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- HISTORY TAB -->
+            <div id="tab_history" style="display:none;">
+              <div class="sectionTitle">
+                <div class="h">Daily history</div>
+                <div class="mini">Stored in Firebase</div>
+              </div>
+
+              <div class="empty" style="margin-bottom:12px;">
+                This keeps a record per day so you can compare.
+                <br>• Yesterday treat calories vs today
+                <br>• Graph uses last 14 days
+              </div>
+
+              <div class="actions">
+                <button id="refreshHistoryBtn" class="btn">Refresh</button>
+                <button id="rebuildTodayBtn" class="btn ghost" title="Re-save today's snapshot into history">Save Today Snapshot</button>
+              </div>
+
+              <hr class="sectionSep" />
+
+              <div class="sectionTitle">
+                <div class="h">Recent days</div>
+                <div class="mini" id="historyCount">—</div>
+              </div>
+
+              <div id="historyList" class="libList"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modalOverlay">
+    <div class="modal">
+      <div class="hd" id="modalTitle">Confirm</div>
+      <div class="bd" id="modalMessage">—</div>
+      <div class="ft">
+        <button class="btn" id="modalCancel">Cancel</button>
+        <button class="btn primary" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">—</div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
+<script>
+/* Firebase config */
+const firebaseConfig = {
+  apiKey: "AIzaSyBISAQF9xw2ifb9HllNj4LniyMLD6OhclU",
+  authDomain: "dog-calorie-counter.firebaseapp.com",
+  databaseURL: "https://dog-calorie-counter-default-rtdb.firebaseio.com",
+  projectId: "dog-calorie-counter",
+  storageBucket: "dog-calorie-counter.firebasestorage.app",
+  messagingSenderId: "835874316228",
+  appId: "1:835874316228:web:cbebd7e0ad3b071352ce91"
+};
+const MASTER_PASSCODE = "0436";
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const dataRef = db.ref("familyData"); // main state
+const catalogBackupRef = db.ref("familyData_catalogBackup"); // latest backup
+const catalogBackupHistoryRef = db.ref("familyData_catalogBackupHistory"); // versioned backups
+const historyRef = db.ref("familyHistory"); // daily snapshots: {YYYY-MM-DD:{...}}
+
+const DEFAULT_CATALOG = [
+  { id: crypto.randomUUID(), name: "Member's Mark Sweet Potato Fries", kcalPerUnit: 25, unitLabel: "pieces", step: 1, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: 'Cadet 12" Bull Sticks', kcalPerUnit: 90, unitLabel: "sticks", step: 0.5, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Purina Beggin' Bacon & Cheese", kcalPerUnit: 30, unitLabel: "treats", step: 1, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Pet Pride Chicken Jerky", kcalPerUnit: 20, unitLabel: "strips", step: 1, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Milk-Bone Minis (Peanut Butter)", kcalPerUnit: 5, unitLabel: "minis", step: 1, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Pet Pride Large Dental Sticks", kcalPerUnit: 70, unitLabel: "sticks", step: 0.5, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Jerky Treats (bag)", kcalPerUnit: 25, unitLabel: "pieces", step: 1, imageUrl: "", updatedAt: Date.now() },
+  { id: crypto.randomUUID(), name: "Allergy meds (cheese slice calories)", kcalPerUnit: 70, unitLabel: "dose", step: 1, imageUrl: "", updatedAt: Date.now() }
+];
+
+let state = {
+  settings: {
+    dogName: "Barker",
+    currentWeight: 114.0,
+    goalWeight: 100.0,
+    goalKcal: 1800,
+    treatBudget: null,
+    cups: 4,
+    kcalPerCup: 384,
+    recurringTreats: [] // [{id, treatId, qty, enabled}]
+  },
+  catalog: [],
+  items: [],
+  dayKey: null
+};
+
+let isUnlocked = false;
+let firebaseListenerAttached = false;
+let lastRemovedStack = [];
+let lastCatalogSavedAt = 0;
+let cachedHistory = {}; // dayKey -> snapshot
+
+/* ---------- Utils ---------- */
+function clamp(n){ n = Number(n); return Number.isFinite(n) ? n : 0; }
+function round1(n){ return Math.round(n*10)/10; }
+function todayKey(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+function prevDayKey(key){
+  const [y,m,d] = key.split("-").map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate()-1);
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth()+1).padStart(2,"0");
+  const dd = String(dt.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+function debounce(fn, ms=500){
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+}
+function safeJsonParse(txt){ try{ return JSON.parse(txt);}catch{return null;} }
+function fmtTs(ts){ return ts ? new Date(ts).toLocaleString() : "none"; }
+
+/* Snapshot helper */
+function computeTotalsFromState(st){
+  const food = clamp(st.settings.cups) * clamp(st.settings.kcalPerCup);
+  let treatSum = 0, customSum = 0;
+  (st.items || []).forEach(it => {
+    const c = clamp(it.qty)*clamp(it.kcalPerUnit);
+    if (it.type === "custom") customSum += c;
+    else treatSum += c;
+  });
+  return { food, treatSum, customSum, total: food + treatSum + customSum };
+}
+async function saveDailySnapshot(dayKey, st){
+  const totals = computeTotalsFromState(st);
+  const payload = {
+    savedAt: Date.now(),
+    dayKey,
+    dogName: st.settings.dogName || "Barker",
+    totals: {
+      food: Math.round(totals.food),
+      treats: Math.round(totals.treatSum),
+      custom: Math.round(totals.customSum),
+      total: Math.round(totals.total),
+    },
+    items: (st.items || []).map(i => ({
+      name: i.name,
+      qty: i.qty,
+      kcalPerUnit: i.kcalPerUnit,
+      type: i.type || "catalog"
+    }))
+  };
+  await historyRef.child(dayKey).set(payload);
+  return payload;
+}
+
+/* ---------- App ---------- */
+window.addEventListener("DOMContentLoaded", () => {
+  const passcodeContainer = document.getElementById("passcodeContainer");
+  const appContainer = document.getElementById("appContainer");
+  const passcodeInput = document.getElementById("passcodeInput");
+  const unlockBtn = document.getElementById("unlockBtn");
+  const passcodeError = document.getElementById("passcodeError");
+  const lockBtn = document.getElementById("lockBtn");
+  const debugInfo = document.getElementById("debugInfo");
+
+  const headerDate = document.getElementById("headerDate");
+  const headerWeight = document.getElementById("headerWeight");
+  const headerGoal = document.getElementById("headerGoal");
+  const headerGoalCal = document.getElementById("headerGoalCal");
+  const treatCompare = document.getElementById("treatCompare");
+
+  const syncBadge = document.getElementById("syncBadge");
+  const statusBadge = document.getElementById("statusBadge");
+  const totalCal = document.getElementById("totalCal");
+  const foodCal = document.getElementById("foodCal");
+  const treatCal = document.getElementById("treatCal");
+  const customCal = document.getElementById("customCal");
+  const progressFill = document.getElementById("progressFill");
+  const progressHint = document.getElementById("progressHint");
+
+  const copyBtn = document.getElementById("copyBtn");
+  const undoBtn = document.getElementById("undoBtn");
+  const clearDayBtn = document.getElementById("clearDayBtn");
+
+  const tabs = [...document.querySelectorAll(".tab")];
+  const tabViews = {
+    add: document.getElementById("tab_add"),
+    settings: document.getElementById("tab_settings"),
+    library: document.getElementById("tab_library"),
+    backup: document.getElementById("tab_backup"),
+    history: document.getElementById("tab_history"),
+  };
+
+  const currentWeight = document.getElementById("currentWeight");
+  const goalWeight = document.getElementById("goalWeight");
+  const goalKcal = document.getElementById("goalKcal");
+  const treatBudget = document.getElementById("treatBudget");
+  const foodCups = document.getElementById("foodCups");
+  const calPerCup = document.getElementById("calPerCup");
+
+  const treatSearch = document.getElementById("treatSearch");
+  const treatSelect = document.getElementById("treatSelect");
+  const treatQty = document.getElementById("treatQty");
+  const addTreatBtn = document.getElementById("addTreatBtn");
+  const quickAddHalfBtn = document.getElementById("quickAddHalfBtn");
+  const quickAddOneBtn = document.getElementById("quickAddOneBtn");
+  const openLibraryBtn = document.getElementById("openLibraryBtn");
+
+  const itemList = document.getElementById("itemList");
+  const itemCount = document.getElementById("itemCount");
+  const emptyState = document.getElementById("emptyState");
+
+  const customName = document.getElementById("customName");
+  const customKcal = document.getElementById("customKcal");
+  const customQty = document.getElementById("customQty");
+  const addCustomBtn = document.getElementById("addCustomBtn");
+
+  const libSort = document.getElementById("libSort");
+  const libCount = document.getElementById("libCount");
+  const libEmpty = document.getElementById("libEmpty");
+  const libList = document.getElementById("libList");
+
+  const editTreatId = document.getElementById("editTreatId");
+  const treatName = document.getElementById("treatName");
+  const treatKcalPerUnit = document.getElementById("treatKcalPerUnit");
+  const treatUnitLabel = document.getElementById("treatUnitLabel");
+  const treatStep = document.getElementById("treatStep");
+  const treatImageUrl = document.getElementById("treatImageUrl");
+  const saveTreatBtn = document.getElementById("saveTreatBtn");
+  const clearTreatFormBtn = document.getElementById("clearTreatFormBtn");
+
+  // Recurring
+  const recTreatSelect = document.getElementById("recTreatSelect");
+  const recTreatQty = document.getElementById("recTreatQty");
+  const addRecurringBtn = document.getElementById("addRecurringBtn");
+  const clearRecurringBtn = document.getElementById("clearRecurringBtn");
+  const recList = document.getElementById("recList");
+  const recEmpty = document.getElementById("recEmpty");
+
+  // Backup
+  const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+  const restoreFirebaseBackupBtn = document.getElementById("restoreFirebaseBackupBtn");
+  const restoreLocalBackupBtn = document.getElementById("restoreLocalBackupBtn");
+  const importText = document.getElementById("importText");
+  const applyImportBtn = document.getElementById("applyImportBtn");
+  const clearImportBtn = document.getElementById("clearImportBtn");
+  const backupStatus = document.getElementById("backupStatus");
+  const backupDetails = document.getElementById("backupDetails");
+  const backupList = document.getElementById("backupList");
+
+  // History
+  const refreshHistoryBtn = document.getElementById("refreshHistoryBtn");
+  const rebuildTodayBtn = document.getElementById("rebuildTodayBtn");
+  const historyCount = document.getElementById("historyCount");
+  const historyList = document.getElementById("historyList");
+
+  // Trend chart
+  const trendCanvas = document.getElementById("trendCanvas");
+  const trendHint = document.getElementById("trendHint");
+
+  // Modal + Toast
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalMessage = document.getElementById("modalMessage");
+  const modalConfirm = document.getElementById("modalConfirm");
+  const modalCancel = document.getElementById("modalCancel");
+  const toast = document.getElementById("toast");
+
+  /* Toast */
+  let toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
+  /* Confirm modal */
+  let modalResolve = null;
+  function showModal(title, message, confirmText="Confirm") {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modalConfirm.textContent = confirmText;
+    modalOverlay.classList.add("show");
+    return new Promise(resolve => (modalResolve = resolve));
+  }
+  function closeModal(result) {
+    modalOverlay.classList.remove("show");
+    if (modalResolve) { modalResolve(result); modalResolve = null; }
+  }
+  modalConfirm.addEventListener("click", () => closeModal(true));
+  modalCancel.addEventListener("click", () => closeModal(false));
+  modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(false); });
+
+  /* Tabs */
+  function setTab(name){
+    tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+    Object.entries(tabViews).forEach(([k,el]) => el.style.display = (k===name) ? "block" : "none");
+  }
+  tabs.forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
+  openLibraryBtn.addEventListener("click", () => setTab("library"));
+
+  /* Sync badge */
+  function setSync(stateName){
+    if (stateName === "saving") {
+      syncBadge.className = "badge warn"; syncBadge.textContent = "💾 Saving…";
+    } else if (stateName === "offline") {
+      syncBadge.className = "badge bad"; syncBadge.textContent = "⚠️ Offline";
+    } else {
+      syncBadge.className = "badge ok"; syncBadge.textContent = "☁️ Synced";
+    }
+  }
+  window.addEventListener("online", () => { setSync("synced"); showToast("Back online"); });
+  window.addEventListener("offline", () => { setSync("offline"); showToast("Offline mode"); });
+
+  /* Save main */
+  const saveData = debounce(async () => {
+    if (!isUnlocked) return;
+    try{
+      setSync("saving");
+      await dataRef.set(state);
+      setSync(navigator.onLine ? "synced" : "offline");
+      // keep a "today" snapshot fresh for graphs/compare
+      await saveDailySnapshot(state.dayKey, state);
+    } catch(e){
+      console.error(e);
+      setSync("offline");
+      showToast("Save failed");
+    }
+  }, 650);
+
+  /* Versioned backups (catalog) */
+  const saveCatalogBackup = debounce(async () => {
+    if (!isUnlocked) return;
+    try{
+      const payload = { savedAt: Date.now(), catalog: state.catalog };
+      localStorage.setItem("treatCatalogBackupLatest", JSON.stringify(payload));
+
+      // versioned local (last 5)
+      const localHistory = safeJsonParse(localStorage.getItem("treatCatalogBackupHistory") || "") || [];
+      localHistory.unshift(payload);
+      localStorage.setItem("treatCatalogBackupHistory", JSON.stringify(localHistory.slice(0,5)));
+
+      await catalogBackupRef.set(payload);
+
+      // versioned firebase (last 5)
+      const snap = await catalogBackupHistoryRef.once("value");
+      const fbHist = snap.val() || [];
+      const next = Array.isArray(fbHist) ? fbHist : [];
+      next.unshift(payload);
+      await catalogBackupHistoryRef.set(next.slice(0,5));
+
+      lastCatalogSavedAt = payload.savedAt;
+      await updateBackupUI();
+    } catch(e){
+      console.error("backup failed", e);
+    }
+  }, 800);
+
+  /* Load */
+  async function loadData() {
+    const snapshot = await dataRef.once("value");
+    const data = snapshot.val();
+
+    if (data) {
+      state = {
+        settings: { ...state.settings, ...(data.settings || {}) },
+        catalog: Array.isArray(data.catalog) && data.catalog.length ? data.catalog : DEFAULT_CATALOG,
+        items: Array.isArray(data.items) ? data.items : [],
+        dayKey: data.dayKey || todayKey()
+      };
+    } else {
+      state.catalog = [...DEFAULT_CATALOG];
+      state.items = [];
+      state.dayKey = todayKey();
+      await dataRef.set(state);
+    }
+
+    state.catalog = state.catalog.map(t => ({
+      ...t,
+      step: (t.step === undefined || t.step === null || t.step === "" ? 1 : clamp(t.step)),
+      updatedAt: t.updatedAt || Date.now()
+    }));
+
+    state.settings.dogName = "Barker";
+    state.settings.recurringTreats = Array.isArray(state.settings.recurringTreats) ? state.settings.recurringTreats : [];
+
+    await ensureTodayAndAutofill();
+    await refreshHistoryCache();
+    renderAll();
+    await updateBackupUI();
+
+    if (!firebaseListenerAttached) {
+      firebaseListenerAttached = true;
+      dataRef.on("value", async (snap) => {
+        const d = snap.val();
+        if (!d || !isUnlocked) return;
+
+        state = {
+          settings: { ...state.settings, ...(d.settings || {}) },
+          catalog: Array.isArray(d.catalog) && d.catalog.length ? d.catalog : DEFAULT_CATALOG,
+          items: Array.isArray(d.items) ? d.items : [],
+          dayKey: d.dayKey || todayKey()
+        };
+
+        state.catalog = state.catalog.map(t => ({
+          ...t,
+          step: (t.step === undefined || t.step === null || t.step === "" ? 1 : clamp(t.step)),
+          updatedAt: t.updatedAt || Date.now()
+        }));
+
+        state.settings.dogName = "Barker";
+        state.settings.recurringTreats = Array.isArray(state.settings.recurringTreats) ? state.settings.recurringTreats : [];
+
+        await ensureTodayAndAutofill();
+        await refreshHistoryCache();
+        renderAll();
+        await updateBackupUI();
+      });
+    }
+  }
+
+  /* Ensure day reset + snapshot yesterday + add recurring */
+  async function ensureTodayAndAutofill(){
+    const tk = todayKey();
+    if (state.dayKey && state.dayKey !== tk) {
+      // save yesterday snapshot before clearing
+      try { await saveDailySnapshot(state.dayKey, state); } catch(e){ console.warn("snapshot fail", e); }
+      state.items = [];
+      state.dayKey = tk;
+      await applyRecurringTreatsToToday();
+      showToast("New day: recurring treats added");
+    } else if (!state.dayKey) {
+      state.dayKey = tk;
+      await applyRecurringTreatsToToday();
+    }
+  }
+
+  async function applyRecurringTreatsToToday(){
+    const rec = (state.settings.recurringTreats || []).filter(r => r.enabled !== false);
+    if (!rec.length) return;
+    for (const r of rec) {
+      const treat = state.catalog.find(t => t.id === r.treatId);
+      if (!treat) continue;
+      state.items.push({
+        id: crypto.randomUUID(),
+        type: "catalog",
+        catalogId: treat.id,
+        name: treat.name + " (recurring)",
+        kcalPerUnit: clamp(treat.kcalPerUnit),
+        unitLabel: treat.unitLabel,
+        step: clamp(treat.step || 1),
+        imageUrl: treat.imageUrl || "",
+        qty: clamp(r.qty)
+      });
+    }
+  }
+
+  /* Auto check day every 30s */
+  function startAutoResetWatcher(){
+    setInterval(async () => {
+      const before = state.dayKey;
+      await ensureTodayAndAutofill();
+      if (state.dayKey !== before) {
+        renderAll();
+        saveData();
+      }
+    }, 30000);
+  }
+
+  /* Rendering */
+  function renderAll(){
+    renderHeader();
+    renderSettings();
+    renderTreatDropdown();
+    renderRecurringDropdown();
+    renderRecurringList();
+    renderItems();
+    renderTotals();
+    renderLibrary();
+    renderHistoryUI();
+    drawTrendChart();
+  }
+
+  function renderHeader(){
+    headerDate.textContent = state.dayKey || todayKey();
+    headerWeight.textContent = round1(state.settings.currentWeight).toFixed(1);
+    headerGoal.textContent = round1(state.settings.goalWeight).toFixed(1);
+    headerGoalCal.textContent = Math.round(state.settings.goalKcal);
+    renderTreatCompare();
+  }
+
+  function renderSettings(){
+    currentWeight.value = state.settings.currentWeight;
+    goalWeight.value = state.settings.goalWeight;
+    goalKcal.value = state.settings.goalKcal;
+    treatBudget.value = state.settings.treatBudget ?? "";
+    foodCups.value = state.settings.cups;
+    calPerCup.value = state.settings.kcalPerCup;
+  }
+
+  function filteredCatalog(term){
+    const q = (term || "").trim().toLowerCase();
+    if (!q) return [...state.catalog];
+    return state.catalog.filter(t => (t.name||"").toLowerCase().includes(q));
+  }
+
+  function renderTreatDropdown(){
+    const filtered = filteredCatalog(treatSearch.value);
+    const current = treatSelect.value;
+    treatSelect.innerHTML = '<option value="">Choose a treat...</option>';
+    filtered.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = `${t.name} • ${t.kcalPerUnit} kcal/${t.unitLabel}`;
+      treatSelect.appendChild(opt);
+    });
+    if ([...treatSelect.options].some(o=>o.value===current)) treatSelect.value = current;
+    else treatSelect.value = "";
+  }
+
+  function renderRecurringDropdown(){
+    const current = recTreatSelect.value;
+    recTreatSelect.innerHTML = '<option value="">Choose a treat...</option>';
+    state.catalog.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = `${t.name} • ${t.kcalPerUnit} kcal/${t.unitLabel}`;
+      recTreatSelect.appendChild(opt);
+    });
+    if ([...recTreatSelect.options].some(o=>o.value===current)) recTreatSelect.value = current;
+    else recTreatSelect.value = "";
+  }
+
+  function renderRecurringList(){
+    const rec = state.settings.recurringTreats || [];
+    recList.innerHTML = "";
+    recEmpty.style.display = rec.length ? "none" : "block";
+    if (!rec.length) return;
+
+    rec.forEach((r, idx) => {
+      const treat = state.catalog.find(t=>t.id===r.treatId);
+      const name = treat ? treat.name : "(missing treat)";
+      const el = document.createElement("div");
+      el.className = "libItem";
+      el.innerHTML = `
+        <div class="item-thumb">🔁</div>
+        <div>
+          <div class="item-name">${name}</div>
+          <div class="meta">Qty ${r.qty} • ${r.enabled===false ? "disabled" : "enabled"}</div>
+        </div>
+        <div class="libActions">
+          <button class="btn-action" data-act="toggle" data-idx="${idx}">${r.enabled===false ? "Enable" : "Disable"}</button>
+          <button class="btn-action danger" data-act="del" data-idx="${idx}">Delete</button>
+        </div>
+      `;
+      recList.appendChild(el);
+    });
+
+    recList.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const act = e.target.dataset.act;
+        const r = state.settings.recurringTreats[idx];
+        if (!r) return;
+        if (act === "toggle") {
+          r.enabled = (r.enabled === false) ? true : false;
+          renderRecurringList();
+          saveData();
+          showToast("Updated recurring");
+        } else if (act === "del") {
+          const ok = await showModal("Delete Recurring", "Delete this recurring treat rule?", "Delete");
+          if (!ok) return;
+          state.settings.recurringTreats.splice(idx, 1);
+          renderRecurringList();
+          saveData();
+          showToast("Recurring removed");
+        }
+      });
+    });
+  }
+
+  function renderItems(){
+    itemList.innerHTML = "";
+    itemCount.textContent = `${state.items.length} item${state.items.length===1?"":"s"}`;
+
+    if (!state.items.length){
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    state.items.forEach((item, idx) => {
+      const el = document.createElement("div");
+      el.className = "item canSwipe";
+      el.dataset.idx = idx;
+      const cals = clamp(item.qty)*clamp(item.kcalPerUnit);
+
+      el.innerHTML = `
+        <div class="swipeHint">swipe left to delete</div>
+        <div class="item-thumb">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer">` : "🦴"}</div>
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-details">${item.kcalPerUnit} kcal/${item.unitLabel}${item.step ? ` • step ${item.step}` : ""}</div>
+        </div>
+        <div class="item-controls">
+          <input type="number" min="0" step="${item.step || 1}" value="${item.qty}" data-idx="${idx}">
+          <div class="item-calories">${Math.round(cals)} kcal</div>
+          <button class="btn-action danger" data-idx="${idx}">Remove</button>
+        </div>
+      `;
+      itemList.appendChild(el);
+    });
+
+    // qty edits
+    itemList.querySelectorAll('input[type="number"]').forEach(inp => {
+      inp.addEventListener("input", (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        state.items[idx].qty = clamp(e.target.value);
+        const itemEl = e.target.closest(".item");
+        const calEl = itemEl.querySelector(".item-calories");
+        calEl.textContent = `${Math.round(clamp(state.items[idx].qty)*clamp(state.items[idx].kcalPerUnit))} kcal`;
+        renderTotals();
+        saveData();
+      });
+    });
+
+    // remove buttons
+    itemList.querySelectorAll("button.danger").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        await removeItemWithConfirm(idx);
+      });
+    });
+
+    // swipe left (Feature #6: only swipe left)
+    attachSwipeHandlers();
+  }
+
+  async function removeItemWithConfirm(idx){
+    const it = state.items[idx];
+    if (!it) return;
+    const ok = await showModal("Remove Item", `Remove "${it.name}" from today?`, "Remove");
+    if (!ok) return;
+
+    lastRemovedStack.push({ item: it, index: idx });
+    if (lastRemovedStack.length > 10) lastRemovedStack.shift();
+
+    state.items.splice(idx, 1);
+    renderItems();
+    renderTotals();
+    saveData();
+    showToast("Item removed (Undo available)");
+  }
+
+  function attachSwipeHandlers(){
+    const threshold = 80;
+    const maxShift = -120;
+
+    itemList.querySelectorAll(".item.canSwipe").forEach(el => {
+      let startX = 0, startY = 0, dx = 0, dragging = false, locked = false;
+
+      const onStart = (clientX, clientY) => {
+        startX = clientX; startY = clientY; dx = 0; dragging = true; locked = false;
+        el.classList.add("swiping");
+      };
+      const onMove = (clientX, clientY) => {
+        if (!dragging) return;
+        const mx = clientX - startX;
+        const my = clientY - startY;
+
+        if (!locked){
+          // lock swipe only if mostly horizontal
+          if (Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my)*1.2) locked = true;
+          else if (Math.abs(my) > 12) { dragging = false; el.classList.remove("swiping"); el.style.transform=""; return; }
+        }
+        if (!locked) return;
+
+        dx = Math.min(0, mx); // only left
+        dx = Math.max(maxShift, dx);
+        el.style.transform = `translateX(${dx}px)`;
+      };
+      const onEnd = async () => {
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove("swiping");
+
+        if (dx < -threshold){
+          el.style.transform = `translateX(${maxShift}px)`;
+          const idx = parseInt(el.dataset.idx, 10);
+          // reset after confirm attempt
+          el.style.transform = "";
+          await removeItemWithConfirm(idx);
+        } else {
+          el.style.transform = "";
+        }
+      };
+
+      el.onpointerdown = (e) => { if (e.pointerType === "mouse") return; onStart(e.clientX, e.clientY); };
+      el.onpointermove = (e) => { if (e.pointerType === "mouse") return; onMove(e.clientX, e.clientY); };
+      el.onpointerup = (e) => { if (e.pointerType === "mouse") return; onEnd(); };
+      el.onpointercancel = () => { if (dragging) { dragging=false; el.classList.remove("swiping"); el.style.transform=""; } };
+
+      // Touch fallback
+      el.addEventListener("touchstart", (e)=>{ const t=e.touches[0]; onStart(t.clientX, t.clientY); }, {passive:true});
+      el.addEventListener("touchmove", (e)=>{ const t=e.touches[0]; onMove(t.clientX, t.clientY); }, {passive:true});
+      el.addEventListener("touchend", ()=>{ onEnd(); }, {passive:true});
+    });
+  }
+
+  function renderTotals(){
+    const totals = computeTotalsFromState(state);
+    const goal = clamp(state.settings.goalKcal);
+    const pct = goal>0 ? (totals.total/goal)*100 : 0;
+
+    foodCal.textContent = Math.round(totals.food);
+    treatCal.textContent = Math.round(totals.treatSum);
+    customCal.textContent = Math.round(totals.customSum);
+    totalCal.textContent = Math.round(totals.total);
+
+    progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    progressFill.style.background = pct>100
+      ? "linear-gradient(90deg, var(--warn), var(--bad))"
+      : "linear-gradient(90deg, var(--ok), var(--blue))";
+
+    if (pct <= 100) { statusBadge.className="badge ok"; statusBadge.textContent="✓ On Track"; totalCal.className="v ok"; }
+    else if (pct <= 115) { statusBadge.className="badge warn"; statusBadge.textContent="⚠ Slightly Over"; totalCal.className="v warn"; }
+    else { statusBadge.className="badge bad"; statusBadge.textContent="⚠ Over Goal"; totalCal.className="v bad"; }
+
+    const treatBudgetVal = state.settings.treatBudget ?? Math.round(goal * 0.1);
+    const treatTotal = totals.treatSum + totals.customSum;
+
+    if (goal <= 0) progressHint.textContent = "Set a daily calorie goal to track progress";
+    else if (pct <= 100) progressHint.textContent = `${Math.round(goal - totals.total)} kcal remaining • Treat budget: ${treatBudgetVal} kcal (using ${Math.round(treatTotal)})`;
+    else progressHint.textContent = `Over goal by ${Math.round(totals.total - goal)} kcal • Consider reducing treats`;
+
+    renderHeader();
+  }
+
+  function renderLibrary(){
+    let list = [...state.catalog];
+    if (libSort.value === "kcal") list.sort((a,b)=>clamp(a.kcalPerUnit)-clamp(b.kcalPerUnit));
+    else if (libSort.value === "recent") list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    else list.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+
+    libCount.textContent = `${state.catalog.length} treats`;
+    libList.innerHTML = "";
+    libEmpty.style.display = state.catalog.length ? "none" : "block";
+    if (!state.catalog.length) return;
+
+    list.forEach(t => {
+      const el = document.createElement("div");
+      el.className = "libItem";
+      el.innerHTML = `
+        <div class="item-thumb">${t.imageUrl ? `<img src="${t.imageUrl}" alt="${t.name}" loading="lazy" referrerpolicy="no-referrer">` : "🦴"}</div>
+        <div>
+          <div class="item-name">${t.name}</div>
+          <div class="meta">${t.kcalPerUnit} kcal/${t.unitLabel} • step ${t.step || 1}</div>
+        </div>
+        <div class="libActions">
+          <button class="btn-action" data-act="use" data-id="${t.id}">Use</button>
+          <button class="btn-action" data-act="edit" data-id="${t.id}">Edit</button>
+          <button class="btn-action danger" data-act="del" data-id="${t.id}">Delete</button>
+        </div>
+      `;
+      libList.appendChild(el);
+    });
+
+    libList.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.target.dataset.id;
+        const act = e.target.dataset.act;
+        const treat = state.catalog.find(x=>x.id===id);
+        if (!treat) return;
+
+        if (act === "use") {
+          setTab("add");
+          treatSearch.value = "";
+          renderTreatDropdown();
+          treatSelect.value = treat.id;
+          treatQty.step = String(treat.step || 1);
+          treatQty.value = String(treat.step === 0.5 ? 0.5 : 1);
+          showToast("Selected treat");
+          return;
+        }
+
+        if (act === "edit") {
+          editTreatId.value = treat.id;
+          treatName.value = treat.name || "";
+          treatKcalPerUnit.value = treat.kcalPerUnit ?? "";
+          treatUnitLabel.value = treat.unitLabel || "";
+          treatStep.value = treat.step ?? 1;
+          treatImageUrl.value = treat.imageUrl || "";
+          showToast("Editing treat");
+          return;
+        }
+
+        if (act === "del") {
+          const ok = await showModal("Delete Treat", `Delete "${treat.name}" from the library?`, "Delete");
+          if (!ok) return;
+          state.catalog = state.catalog.filter(x=>x.id!==id);
+          if (treatSelect.value === id) treatSelect.value = "";
+          renderTreatDropdown();
+          renderRecurringDropdown();
+          renderLibrary();
+          saveData();
+          saveCatalogBackup();
+          showToast("Treat deleted");
+        }
+      });
+    });
+  }
+
+  /* History cache */
+  async function refreshHistoryCache(){
+    try{
+      const snap = await historyRef.limitToLast(60).once("value");
+      cachedHistory = snap.val() || {};
+    } catch(e){
+      cachedHistory = {};
+    }
+  }
+
+  function renderTreatCompare(){
+    const todayTotals = computeTotalsFromState(state);
+    const yk = prevDayKey(state.dayKey || todayKey());
+    const y = cachedHistory[yk];
+    const yTreat = y?.totals?.treats ?? null;
+
+    if (yTreat === null){
+      treatCompare.textContent = "no data for yesterday";
+      return;
+    }
+    const diff = Math.round(todayTotals.treatSum) - Number(yTreat);
+    const sign = diff === 0 ? "same" : (diff > 0 ? `+${diff}` : `${diff}`);
+    treatCompare.textContent = `${Math.round(todayTotals.treatSum)} kcal today • ${sign} vs ${yTreat} kcal yesterday`;
+  }
+
+  function renderHistoryUI(){
+    const keys = Object.keys(cachedHistory || {}).sort().reverse();
+    const last3 = keys.slice(0, 3);
+    const els = {
+      d1Label: document.getElementById("last3d1Label"),
+      d2Label: document.getElementById("last3d2Label"),
+      d3Label: document.getElementById("last3d3Label"),
+      d1Treat: document.getElementById("last3d1Treat"),
+      d2Treat: document.getElementById("last3d2Treat"),
+      d3Treat: document.getElementById("last3d3Treat"),
+      d1Total: document.getElementById("last3d1Total"),
+      d2Total: document.getElementById("last3d2Total"),
+      d3Total: document.getElementById("last3d3Total"),
+      delta: document.getElementById("last3Delta"),
+    };
+
+    // Fill last 3-day cards (most recent first)
+    const fillCard = (k, labelEl, treatEl, totalEl) => {
+      if (!labelEl || !treatEl || !totalEl) return;
+      if (!k || !cachedHistory[k]) {
+        labelEl.textContent = "—";
+        treatEl.textContent = "—";
+        totalEl.textContent = "—";
+        return;
+      }
+      const h = cachedHistory[k];
+      labelEl.textContent = k;
+      treatEl.textContent = `${h?.totals?.treats ?? "?"} treats`;
+      totalEl.textContent = `Total ${h?.totals?.total ?? "?"} kcal`;
+    };
+
+    fillCard(last3[0], els.d1Label, els.d1Treat, els.d1Total);
+    fillCard(last3[1], els.d2Label, els.d2Treat, els.d2Total);
+    fillCard(last3[2], els.d3Label, els.d3Treat, els.d3Total);
+
+    if (els.delta) {
+      const a = cachedHistory[last3[0]]?.totals?.treats;
+      const b = cachedHistory[last3[2]]?.totals?.treats;
+      if (a == null || b == null) els.delta.textContent = "—";
+      else {
+        const diff = Number(a) - Number(b);
+        els.delta.textContent = diff === 0 ? "same" : (diff > 0 ? `+${diff}` : `${diff}`);
+      }
+    }
+
+    historyCount.textContent = `${keys.length} day${keys.length===1?"":"s"}`;
+    historyList.innerHTML = "";
+    if (!keys.length){
+      historyList.innerHTML = `<div class="empty">No history saved yet.\n(It will build automatically as you use the app.)</div>`;
+      return;
+    }
+
+    keys.slice(0, 14).forEach(k => {
+      const h = cachedHistory[k];
+      const el = document.createElement("div");
+      el.className = "libItem";
+      el.innerHTML = `
+        <div class="item-thumb">📅</div>
+        <div>
+          <div class="item-name">${k}</div>
+          <div class="meta">Total ${h?.totals?.total ?? "?"} • Treats ${h?.totals?.treats ?? "?"} • Food ${h?.totals?.food ?? "?"}</div>
+        </div>
+        <div class="libActions">
+          <button class="btn-action" data-act="copy" data-k="${k}">Copy</button>
+        </div>
+      `;
+      historyList.appendChild(el);
+    });
+
+    historyList.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const k = e.target.dataset.k;
+        const h = cachedHistory[k];
+        if (!h) return;
+        const lines = [
+          `🐾 Barker – ${k}`,
+          `Total: ${h.totals.total} kcal`,
+          `Food: ${h.totals.food} kcal`,
+          `Treats: ${h.totals.treats} kcal`,
+          `Custom: ${h.totals.custom} kcal`,
+          "",
+          "Items:",
+          ...(h.items || []).map(i => `• ${i.name}: ${i.qty} × ${i.kcalPerUnit} = ${Math.round(clamp(i.qty)*clamp(i.kcalPerUnit))} kcal`)
+        ];
+        try{
+          await navigator.clipboard.writeText(lines.join("\n"));
+          showToast("History copied");
+        } catch {
+          alert(lines.join("\n"));
+        }
+      });
+    });
+  }
+
+  function drawTrendChart(){
+    const ctx = trendCanvas.getContext("2d");
+    const W = trendCanvas.width, H = trendCanvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    const keys = Object.keys(cachedHistory || {}).sort(); // ascending
+    const last = keys.slice(-14);
+    if (!last.length){
+      trendHint.textContent = "No trend data yet — it will appear after you use it for a day.";
+      // draw faint baseline
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(20, H-30, W-40, 1);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    const totals = last.map(k => cachedHistory[k]?.totals?.total ?? 0);
+    const treats = last.map(k => cachedHistory[k]?.totals?.treats ?? 0);
+
+    const maxVal = Math.max(1, ...totals, ...treats);
+    const padL=42, padR=12, padT=16, padB=34;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    // axes
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // helper
+    const xAt = (i) => padL + (plotW * (i/(last.length-1 || 1)));
+    const yAt = (v) => padT + plotH - (plotH * (v/maxVal));
+
+    // total line
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.beginPath();
+    totals.forEach((v,i)=>{ const x=xAt(i), y=yAt(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+
+    // treats line (dashed)
+    ctx.setLineDash([6,6]);
+    ctx.strokeStyle = "#ffffff";
+    ctx.globalAlpha = 0.65;
+    ctx.beginPath();
+    treats.forEach((v,i)=>{ const x=xAt(i), y=yAt(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    // labels (min)
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = 0.55;
+    ctx.font = "12px " + getComputedStyle(document.documentElement).getPropertyValue("--mono");
+    ctx.fillText("Total (solid) / Treats (dashed)", padL, H-12);
+    ctx.globalAlpha = 0.35;
+    ctx.fillText(String(maxVal), 6, padT+10);
+    ctx.fillText("0", 14, padT+plotH+4);
+
+    // x labels (first/last date)
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(last[0].slice(5), padL, padT+plotH+18);
+    ctx.fillText(last[last.length-1].slice(5), padL+plotW-50, padT+plotH+18);
+    ctx.globalAlpha = 1;
+
+    trendHint.textContent = `Showing ${last.length} days • Max value ${maxVal} kcal`;
+  }
+
+  /* Backup UI */
+  async function updateBackupUI(){
+    // local backup
+    const localHist = safeJsonParse(localStorage.getItem("treatCatalogBackupHistory") || "") || [];
+    // firebase backup history
+    let fbHist = [];
+    try{
+      const snap = await catalogBackupHistoryRef.once("value");
+      const v = snap.val();
+      fbHist = Array.isArray(v) ? v : [];
+    } catch {}
+
+    backupStatus.textContent = `Firebase versions: ${fbHist.length} • Local versions: ${localHist.length}`;
+    backupDetails.textContent =
+      `Last catalog save: ${lastCatalogSavedAt ? fmtTs(lastCatalogSavedAt) : "—"}\n` +
+      `Restore tip: choose a version below.\n` +
+      `Also available: JSON export/import for manual backup.`;
+
+    // render list (prefer firebase)
+    backupList.innerHTML = "";
+    const list = (fbHist.length ? fbHist : localHist).slice(0,5);
+
+    if (!list.length){
+      backupList.innerHTML = `<div class="empty">No backups yet. Save/edit a treat and it will create backup versions.</div>`;
+      return;
+    }
+
+    list.forEach((b, idx) => {
+      const el = document.createElement("div");
+      el.className = "libItem";
+      el.innerHTML = `
+        <div class="item-thumb">💾</div>
+        <div>
+          <div class="item-name">Version ${idx+1}</div>
+          <div class="meta">${fmtTs(b.savedAt)} • ${b.catalog?.length ?? 0} treats</div>
+        </div>
+        <div class="libActions">
+          <button class="btn-action" data-act="restore" data-idx="${idx}">Restore</button>
+        </div>
+      `;
+      backupList.appendChild(el);
+    });
+
+    backupList.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const chosen = list[idx];
+        if (!chosen || !Array.isArray(chosen.catalog)) return;
+        const ok = await showModal("Restore Version", `Restore treat library from ${fmtTs(chosen.savedAt)}?`, "Restore");
+        if (!ok) return;
+
+        state.catalog = chosen.catalog.map(t => ({
+          id: String(t.id || crypto.randomUUID()),
+          name: String(t.name || "Unnamed treat"),
+          kcalPerUnit: clamp(t.kcalPerUnit),
+          unitLabel: String(t.unitLabel || "units"),
+          step: clamp(t.step || 1) || 1,
+          imageUrl: String(t.imageUrl || ""),
+          updatedAt: t.updatedAt || Date.now()
+        })).filter(t => t.kcalPerUnit > 0);
+
+        renderTreatDropdown();
+        renderRecurringDropdown();
+        renderLibrary();
+        saveData();
+        saveCatalogBackup();
+        showToast("Library restored");
+      });
+    });
+  }
+
+  /* Events */
+  [currentWeight, goalWeight, goalKcal, treatBudget, foodCups, calPerCup].forEach(input => {
+    input.addEventListener("input", () => {
+      state.settings.currentWeight = clamp(currentWeight.value);
+      state.settings.goalWeight = clamp(goalWeight.value);
+      state.settings.goalKcal = clamp(goalKcal.value);
+      state.settings.treatBudget = treatBudget.value ? clamp(treatBudget.value) : null;
+      state.settings.cups = clamp(foodCups.value);
+      state.settings.kcalPerCup = clamp(calPerCup.value);
+      renderTotals();
+      saveData();
+    });
+  });
+
+  treatSearch.addEventListener("input", () => renderTreatDropdown());
+  libSort.addEventListener("change", () => renderLibrary());
+
+  treatSelect.addEventListener("change", () => {
+    const id = treatSelect.value;
+    const treat = state.catalog.find(t=>t.id===id);
+    if (treat) treatQty.step = String(treat.step || 1);
+  });
+
+  function addTreatById(id, qty){
+    const treat = state.catalog.find(t=>t.id===id);
+    if (!treat) return false;
+    const q = clamp(qty);
+    if (q <= 0) return false;
+
+    state.items.push({
+      id: crypto.randomUUID(),
+      type: "catalog",
+      catalogId: treat.id,
+      name: treat.name,
+      kcalPerUnit: clamp(treat.kcalPerUnit),
+      unitLabel: treat.unitLabel,
+      step: clamp(treat.step || 1),
+      imageUrl: treat.imageUrl || "",
+      qty: q
+    });
+    renderItems(); renderTotals(); saveData(); showToast("Added treat");
+    return true;
+  }
+
+  addTreatBtn.addEventListener("click", () => {
+    const id = treatSelect.value;
+    if (!id) return alert("Please select a treat");
+    const qty = clamp(treatQty.value);
+    if (qty <= 0) return alert("Quantity must be greater than 0");
+    addTreatById(id, qty);
+  });
+  quickAddHalfBtn.addEventListener("click", () => {
+    const id = treatSelect.value;
+    if (!id) return alert("Select a treat first");
+    const treat = state.catalog.find(t=>t.id===id);
+    const step = clamp(treat?.step || 1);
+    const inc = (step <= 0.5 ? 0.5 : step);
+    addTreatById(id, inc);
+  });
+  quickAddOneBtn.addEventListener("click", () => {
+    const id = treatSelect.value;
+    if (!id) return alert("Select a treat first");
+    addTreatById(id, 1);
+  });
+
+  addCustomBtn.addEventListener("click", () => {
+    const name = customName.value.trim();
+    const kcal = clamp(customKcal.value);
+    const qty = clamp(customQty.value);
+
+    if (!name) return alert("Please enter a name");
+    if (kcal <= 0) return alert("Calories must be greater than 0");
+    if (qty <= 0) return alert("Quantity must be greater than 0");
+
+    state.items.push({
+      id: crypto.randomUUID(),
+      type: "custom",
+      name,
+      kcalPerUnit: kcal,
+      unitLabel: "unit",
+      step: 1,
+      imageUrl: "",
+      qty
+    });
+
+    customName.value = ""; customKcal.value = ""; customQty.value = 1;
+    renderItems(); renderTotals(); saveData(); showToast("Added custom");
+  });
+
+  undoBtn.addEventListener("click", () => {
+    const last = lastRemovedStack.pop();
+    if (!last) return showToast("Nothing to undo");
+    const idx = Math.min(Math.max(0, last.index), state.items.length);
+    state.items.splice(idx, 0, last.item);
+    renderItems(); renderTotals(); saveData(); showToast("Undo complete");
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    const totals = computeTotalsFromState(state);
+    const goal = clamp(state.settings.goalKcal);
+
+    const lines = [
+      `🐾 Barker – ${state.dayKey}`,
+      `Weight: ${round1(state.settings.currentWeight).toFixed(1)} lb (goal ${round1(state.settings.goalWeight).toFixed(1)} lb)`,
+      `Goal: ${Math.round(goal)} kcal`,
+      `Food: ${state.settings.cups} cups × ${state.settings.kcalPerCup} = ${Math.round(totals.food)} kcal`,
+      `Treats: ${Math.round(totals.treatSum)} kcal`,
+      `Custom: ${Math.round(totals.customSum)} kcal`,
+      `TOTAL: ${Math.round(totals.total)} kcal`,
+      "",
+      "Items:",
+      ...(state.items || []).map(i => `• ${i.name}: ${i.qty} × ${i.kcalPerUnit} = ${Math.round(clamp(i.qty)*clamp(i.kcalPerUnit))} kcal`)
+    ];
+
+    try { await navigator.clipboard.writeText(lines.join("\n")); showToast("Summary copied"); }
+    catch { alert(lines.join("\n")); }
+  });
+
+  clearDayBtn.addEventListener("click", async () => {
+    const ok = await showModal("Clear Today", "Clear today's items? (Settings and library stay the same)", "Clear");
+    if (!ok) return;
+    state.items = [];
+    lastRemovedStack = [];
+    renderItems(); renderTotals(); saveData(); showToast("Cleared");
+  });
+
+  /* Treat library save / edit */
+  function clearTreatForm(){
+    editTreatId.value = "";
+    treatName.value = "";
+    treatKcalPerUnit.value = "";
+    treatUnitLabel.value = "";
+    treatStep.value = "1";
+    treatImageUrl.value = "";
+  }
+  clearTreatFormBtn.addEventListener("click", () => { clearTreatForm(); showToast("Form cleared"); });
+
+  saveTreatBtn.addEventListener("click", async () => {
+    const name = treatName.value.trim();
+    const kcal = clamp(treatKcalPerUnit.value);
+    const unit = treatUnitLabel.value.trim() || "units";
+    const step = clamp(treatStep.value || 1);
+    const img = treatImageUrl.value.trim();
+
+    if (!name) return alert("Treat name is required");
+    if (kcal <= 0) return alert("Calories must be > 0");
+    if (step <= 0) return alert("Step must be > 0");
+
+    const id = editTreatId.value || crypto.randomUUID();
+    const idx = state.catalog.findIndex(t=>t.id===id);
+
+    const obj = { id, name, kcalPerUnit:kcal, unitLabel:unit, step, imageUrl:img, updatedAt: Date.now() };
+    if (idx >= 0) { state.catalog[idx] = obj; showToast("Treat updated"); }
+    else { state.catalog.push(obj); showToast("Treat added"); }
+
+    renderTreatDropdown(); renderRecurringDropdown(); renderLibrary();
+    saveData(); saveCatalogBackup();
+    editTreatId.value = id;
+  });
+
+  /* Recurring */
+  addRecurringBtn.addEventListener("click", async () => {
+    const treatId = recTreatSelect.value;
+    if (!treatId) return alert("Choose a treat");
+    const qty = clamp(recTreatQty.value);
+    if (qty <= 0) return alert("Qty must be > 0");
+
+    state.settings.recurringTreats.push({
+      id: crypto.randomUUID(),
+      treatId,
+      qty,
+      enabled: true
+    });
+    renderRecurringList();
+    saveData();
+    showToast("Recurring added");
+  });
+
+  clearRecurringBtn.addEventListener("click", () => {
+    recTreatSelect.value = "";
+    recTreatQty.value = "0.5";
+    showToast("Cleared");
+  });
+
+  /* Backup tools */
+  exportBtn.addEventListener("click", async () => {
+    const payload = { version: 2, exportedAt: Date.now(), catalog: state.catalog };
+    const txt = JSON.stringify(payload, null, 2);
+    try { await navigator.clipboard.writeText(txt); showToast("Export copied"); }
+    catch { importText.value = txt; setTab("backup"); showToast("Export ready"); }
+  });
+
+  importBtn.addEventListener("click", () => { setTab("backup"); importText.focus(); showToast("Paste JSON below"); });
+  clearImportBtn.addEventListener("click", () => { importText.value=""; showToast("Cleared"); });
+
+  applyImportBtn.addEventListener("click", async () => {
+    const parsed = safeJsonParse(importText.value.trim());
+    if (!parsed) return alert("Invalid JSON");
+    const catalog = parsed.catalog;
+    if (!Array.isArray(catalog)) return alert("JSON must include catalog: []");
+
+    const cleaned = catalog.map(t => ({
+      id: String(t.id || crypto.randomUUID()),
+      name: String(t.name || "Unnamed treat"),
+      kcalPerUnit: clamp(t.kcalPerUnit),
+      unitLabel: String(t.unitLabel || "units"),
+      step: clamp(t.step || 1) || 1,
+      imageUrl: String(t.imageUrl || ""),
+      updatedAt: t.updatedAt || Date.now()
+    })).filter(t => t.kcalPerUnit > 0);
+
+    if (!cleaned.length) return alert("No valid treats found (kcalPerUnit must be > 0)");
+
+    const ok = await showModal("Apply Import", `Replace your library with ${cleaned.length} imported treats?`, "Replace");
+    if (!ok) return;
+
+    state.catalog = cleaned;
+    renderTreatDropdown(); renderRecurringDropdown(); renderLibrary();
+    saveData(); saveCatalogBackup();
+    await updateBackupUI();
+    showToast("Library imported");
+  });
+
+  restoreLocalBackupBtn.addEventListener("click", async () => {
+    const localHist = safeJsonParse(localStorage.getItem("treatCatalogBackupHistory") || "") || [];
+    if (!localHist.length) return alert("No local backups on this device.");
+    const chosen = localHist[0];
+    const ok = await showModal("Restore Local Backup", `Restore latest local backup (${chosen.catalog?.length ?? 0} treats)?`, "Restore");
+    if (!ok) return;
+
+    state.catalog = (chosen.catalog || []).map(t => ({
+      id: String(t.id || crypto.randomUUID()),
+      name: String(t.name || "Unnamed treat"),
+      kcalPerUnit: clamp(t.kcalPerUnit),
+      unitLabel: String(t.unitLabel || "units"),
+      step: clamp(t.step || 1) || 1,
+      imageUrl: String(t.imageUrl || ""),
+      updatedAt: t.updatedAt || Date.now()
+    })).filter(t => t.kcalPerUnit > 0);
+
+    renderTreatDropdown(); renderRecurringDropdown(); renderLibrary();
+    saveData(); saveCatalogBackup();
+    showToast("Restored local backup");
+  });
+
+  restoreFirebaseBackupBtn.addEventListener("click", async () => {
+    let v = null;
+    try { const snap = await catalogBackupRef.once("value"); v = snap.val(); } catch {}
+    const catalog = v?.catalog;
+    if (!Array.isArray(catalog) || !catalog.length) return alert("No Firebase backup found.");
+
+    const ok = await showModal("Restore Firebase Backup", `Restore latest Firebase backup (${catalog.length} treats)?`, "Restore");
+    if (!ok) return;
+
+    state.catalog = catalog.map(t => ({
+      id: String(t.id || crypto.randomUUID()),
+      name: String(t.name || "Unnamed treat"),
+      kcalPerUnit: clamp(t.kcalPerUnit),
+      unitLabel: String(t.unitLabel || "units"),
+      step: clamp(t.step || 1) || 1,
+      imageUrl: String(t.imageUrl || ""),
+      updatedAt: t.updatedAt || Date.now()
+    })).filter(t => t.kcalPerUnit > 0);
+
+    renderTreatDropdown(); renderRecurringDropdown(); renderLibrary();
+    saveData(); saveCatalogBackup();
+    showToast("Restored Firebase backup");
+  });
+
+  /* History controls */
+  refreshHistoryBtn.addEventListener("click", async () => {
+    await refreshHistoryCache();
+    renderHeader();
+    renderHistoryUI();
+    drawTrendChart();
+    showToast("History refreshed");
+  });
+
+  rebuildTodayBtn.addEventListener("click", async () => {
+    await saveDailySnapshot(state.dayKey, state);
+    await refreshHistoryCache();
+    renderHeader();
+    renderHistoryUI();
+    drawTrendChart();
+    showToast("Saved today snapshot");
+  });
+
+  /* Lock/Unlock */
+  function lock(){
+    isUnlocked = false;
+    sessionStorage.removeItem("unlocked");
+    appContainer.classList.remove("show");
+    passcodeContainer.style.display = "flex";
+    passcodeInput.value = "";
+    passcodeInput.focus();
+  }
+  async function unlock(){
+    const entered = passcodeInput.value.trim();
+    if (debugInfo) debugInfo.textContent = `Entered: "${entered}"`;
+    if (entered === MASTER_PASSCODE){
+      isUnlocked = true;
+      sessionStorage.setItem("unlocked", "true");
+      passcodeError.classList.remove("show");
+      passcodeInput.classList.remove("error");
+      passcodeContainer.style.display = "none";
+      appContainer.classList.add("show");
+      passcodeInput.value = "";
+      await loadData();
+      startAutoResetWatcher();
+      setSync(navigator.onLine ? "synced" : "offline");
+      showToast("Unlocked");
+    } else {
+      passcodeError.classList.add("show");
+      passcodeInput.classList.add("error");
+      passcodeInput.value = "";
+      passcodeInput.focus();
+      setTimeout(()=>{ passcodeInput.classList.remove("error"); passcodeError.classList.remove("show"); }, 2000);
+    }
+  }
+  unlockBtn.addEventListener("click", unlock);
+  passcodeInput.addEventListener("keydown", (e)=>{ if (e.key==="Enter") unlock(); });
+  passcodeInput.addEventListener("input", (e)=>{ e.target.value = e.target.value.replace(/[^0-9]/g,""); if (e.target.value.length===4) setTimeout(unlock, 80); });
+  lockBtn.addEventListener("click", lock);
+
+  /* Boot */
+  passcodeInput.focus();
+  if (sessionStorage.getItem("unlocked") === "true"){
+    isUnlocked = true;
+    passcodeContainer.style.display = "none";
+    appContainer.classList.add("show");
+    loadData();
+    startAutoResetWatcher();
+    setSync(navigator.onLine ? "synced" : "offline");
+  } else {
+    setSync(navigator.onLine ? "synced" : "offline");
+  }
+});
+</script>
+</body>
+</html>
